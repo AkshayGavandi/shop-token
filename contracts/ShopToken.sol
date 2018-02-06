@@ -1,6 +1,5 @@
 pragma solidity ^0.4.17;
 
-import "zeppelin-solidity/contracts/math/SafeMath.sol";
 import "zeppelin-solidity/contracts/token/StandardToken.sol";
 
 contract ShopToken is StandardToken {
@@ -20,11 +19,6 @@ contract ShopToken is StandardToken {
         uint _auctionSupply) 
         public 
     {
-        // Input parameters validation
-        require(_auctionAddress != 0x0);
-        require(_initialSupply > multiplier);
-        require(_auctionSupply < _initialSupply);
-
         // Set `totalSupply` value for `ERC20Basic` interface
         totalSupply = _initialSupply;
 

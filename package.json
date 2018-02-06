@@ -9,7 +9,6 @@
   "scripts": {
     "build": "truffle compile",
     "coverage": "solidity-coverage",
-    "coveralls": "solidity-coverage && cat coverage/lcov.info | coveralls",
     "lint": "solium -d contracts/",
     "migrate": "run-with-testrpc 'truffle migrate'",
     "test": "run-with-testrpc 'truffle test'",
@@ -27,7 +26,6 @@
     "babel-preset-stage-3": "^6.17.0",
     "babel-register": "^6.23.0",
     "bignumber.js": "^6.0.0",
-    "coveralls": "^3.0.0",    
     "ganache-cli": "v6.1.0-beta.0",
     "run-with-testrpc": "^0.3.0",
     "solidity-coverage": "^0.4.3",

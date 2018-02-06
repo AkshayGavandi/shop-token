@@ -1,6 +1,6 @@
 # SHOP Token
 
-[![CircleCI](https://circleci.com/gh/ShoppersShop/shop-token.svg?style=svg)](https://circleci.com/gh/ShoppersShop/shop-token) [![dependencies Status](https://david-dm.org/ShoppersShop/shop-token/status.svg)](https://david-dm.org/ShoppersShop/shop-token) [![devDependencies Status](https://david-dm.org/ShoppersShop/shop-token/dev-status.svg)](https://david-dm.org/ShoppersShop/shop-token?type=dev) [![Coverage Status](https://coveralls.io/repos/github/ShoppersShop/shop-token/badge.svg?branch=master)](https://coveralls.io/github/ShoppersShop/shop-token?branch=master)
+[![CircleCI](https://circleci.com/gh/ShoppersShop/shop-token.svg?style=svg)](https://circleci.com/gh/ShoppersShop/shop-token) [![dependencies Status](https://david-dm.org/ShoppersShop/shop-token/status.svg)](https://david-dm.org/ShoppersShop/shop-token) [![devDependencies Status](https://david-dm.org/ShoppersShop/shop-token/dev-status.svg)](https://david-dm.org/ShoppersShop/shop-token?type=dev)
 
 Smart contracts for SHOP token and sale in form of [Dutch auction](https://en.wikipedia.org/wiki/Dutch_auction).
 
@@ -15,6 +15,7 @@ Auction stages:
 * `AuctionSetup`
 * `AuctionStarted`
 * `AuctionEnded`
+* `TokensDistributed`
 
 # Dependencies
 
