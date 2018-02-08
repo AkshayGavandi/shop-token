@@ -9,6 +9,7 @@ contract DutchAuction {
         uint256 transfer;
         bool placed;
         bool claimed;
+        bool isBitcoin;
     }
 
     // Auction Stages
@@ -33,7 +34,7 @@ contract DutchAuction {
     event AuctionSetup();
     event AuctionStarted();
     event AuctionEnded(uint256 priceFinal, Endings ending);    
-    event BidAccepted(address indexed _address, uint256 price, uint256 transfer);
+    event BidAccepted(address indexed _address, uint256 price, uint256 transfer, bool isBitcoin);
     event BidPartiallyRefunded(address indexed _address, uint256 transfer);
     event TokensClaimed(address indexed _address, uint256 amount);
     event TokensDistributed();
@@ -49,6 +50,9 @@ contract DutchAuction {
 
     // Auction owner address
     address public owner_address;
+
+    // Bitcoin bidder proxy address
+    address public proxy_address;
 
     // Starting price in wei
     uint256 public price_start;
@@ -132,10 +136,17 @@ contract DutchAuction {
         _;
     }
 
+    // Proxy modifier
+    modifier isProxy() {
+        require(msg.sender == proxy_address);
+        _;
+    }
+
     // Constructor
-    function DutchAuction(uint256 _priceStart) public {
+    function DutchAuction(uint256 _priceStart, address _proxyAddress) public {
         // Set auction owner address
         owner_address = msg.sender;
+        proxy_address = _proxyAddress;
 
         // Set auction parameters
         price_start = _priceStart;
@@ -146,10 +157,20 @@ contract DutchAuction {
         AuctionDeployed(_priceStart);
     }
 
-    // Default function
+    // Default fallback function
     function () public payable atStage(Stages.AuctionStarted) {
         placeBid();
     }
+
+    // Place Ethereum bid
+    function placeBid() public payable atStage(Stages.AuctionStarted) returns (bool) {
+        return placeBidGeneric(msg.sender, msg.value, false);
+    }
+
+    // Place Bitcoin bid
+    function placeBitcoinBid(address beneficiary, uint256 bidValue) external isProxy atStage(Stages.AuctionStarted) returns (bool) {
+        return placeBidGeneric(beneficiary, bidValue, true);
+    }   
 
     // Setup auction
     function setupAuction(address _tokenAddress, uint256 offering, uint256 bonus) external isOwner atStage(Stages.AuctionDeployed) {
@@ -173,55 +194,6 @@ contract DutchAuction {
         current_stage = Stages.AuctionStarted;
         start_time = block.timestamp;
         AuctionStarted();
-    }
-
-    // Place bid
-    function placeBid() public payable atStage(Stages.AuctionStarted) returns (bool) {
-        // Allow only a single bid per address
-        require(!bids[msg.sender].placed);
-
-        // Automatically end auction if date limit exceeded
-        uint256 currentDay = (block.timestamp - start_time) / 86400;
-        if (currentDay > duration) {       
-            endImmediately(price_final, Endings.TimeLimit);
-            return false;
-        }
-
-        // Check if value of received bids equals or exceeds the implied value of all tokens
-        uint256 currentPrice = price_start * rates[currentDay] / precision;
-        uint256 canAcceptWei = currentPrice * initial_offering - received_wei;
-        if (msg.value > canAcceptWei) {
-            // Place last bid with oversubscription bonus
-            uint256 acceptedWei = currentPrice * last_bonus + canAcceptWei;
-            if (msg.value <= acceptedWei) {
-                // Place bid with all available value
-                placeBidInner(msg.sender, currentPrice, msg.value); 
-            } else {
-                // Place bid with available value
-                placeBidInner(msg.sender, currentPrice, acceptedWei);
-
-                // Refund remaining value
-                uint256 returnedWei = msg.value - acceptedWei;
-                BidPartiallyRefunded(msg.sender, returnedWei);
-                msg.sender.transfer(returnedWei);
-            }
-
-            // End auction
-            endImmediately(currentPrice, Endings.SoldOutBonus);
-        } else if (msg.value == canAcceptWei) {
-            // Place last bid && end auction
-            placeBidInner(msg.sender, currentPrice, canAcceptWei);
-            endImmediately(currentPrice, Endings.SoldOut);
-        } else {
-            // Place bid and update last price
-            placeBidInner(msg.sender, currentPrice, msg.value);
-
-            if (currentPrice < price_final) {
-                price_final = currentPrice;
-            }            
-        }
-
-        return true;
     }
 
     // End auction
@@ -285,20 +257,77 @@ contract DutchAuction {
         return (price_start * rates[_day]) / precision;
     }
 
-    // Inner function for placing bid
-    function placeBidInner(address sender, uint256 price, uint256 value) private atStage(Stages.AuctionStarted) {
-        // Create and save bid
-        Bid memory bid = Bid({price: price, transfer: value, placed: true, claimed: false});
-        bids[sender] = bid;
+    // Generic bid validation from ETH or BTC origin
+    function placeBidGeneric(address sender, uint256 bidValue, bool isBitcoin) private atStage(Stages.AuctionStarted) returns (bool) {
+        // Allow only a single bid per address
+        require(!bids[sender].placed);
 
-        // Fire event
-        BidAccepted(sender, price, value);
+        // Automatically end auction if date limit exceeded
+        uint256 currentDay = (block.timestamp - start_time) / 86400;
+        if (currentDay > duration) {       
+            endImmediately(price_final, Endings.TimeLimit);
+            return false;
+        }
+
+        // Check if value of received bids equals or exceeds the implied value of all tokens
+        uint256 currentPrice = price_start * rates[currentDay] / precision;
+        uint256 acceptableWei = (currentPrice * initial_offering) - received_wei;
+        if (bidValue > acceptableWei) {
+            // Place last bid with oversubscription bonus
+            uint256 acceptedWei = currentPrice * last_bonus + acceptableWei;
+            if (bidValue <= acceptedWei) {
+                // Place bid with all available value
+                placeBidInner(sender, currentPrice, bidValue, isBitcoin); 
+            } else {
+                // Place bid with available value
+                placeBidInner(sender, currentPrice, acceptedWei, isBitcoin);
+
+                // Refund remaining value
+                uint256 returnedWei = bidValue - acceptedWei;
+                BidPartiallyRefunded(sender, returnedWei);
+                sender.transfer(returnedWei);
+            }
+
+            // End auction
+            endImmediately(currentPrice, Endings.SoldOutBonus);
+        } else if (bidValue == acceptableWei) {
+            // Place last bid && end auction
+            placeBidInner(sender, currentPrice, acceptableWei, isBitcoin);
+            endImmediately(currentPrice, Endings.SoldOut);
+        } else {
+            // Place bid and update last price
+            placeBidInner(sender, currentPrice, bidValue, isBitcoin);
+
+            if (currentPrice < price_final) {
+                price_final = currentPrice;
+            }            
+        }
+
+        return true;        
+    }
+
+    // Inner function for placing bid
+    function placeBidInner(address sender, uint256 price, uint256 value, bool isBitcoin) private atStage(Stages.AuctionStarted) {
+        // Create bid
+        Bid memory bid = Bid({
+            price: price,
+            transfer: value,
+            placed: true,
+            claimed: false,
+            isBitcoin: isBitcoin
+        });
+
+        // Save and fire event
+        bids[sender] = bid;        
+        BidAccepted(sender, price, value, isBitcoin);
 
         // Update received wei value
         received_wei = received_wei + value;
 
         // Send bid amount to owner
-        owner_address.transfer(value);
+        if (!isBitcoin) {
+            owner_address.transfer(value);
+        }
     }
 
     // Inner function for ending auction

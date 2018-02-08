@@ -19,9 +19,10 @@ contract('PriceDecay', function (accounts) {
   beforeEach(async function () {
     const startPrice = new BigNumber(19.99);
     const startPriceWei = startPrice.times(conversionRate).times(defaults.multiplier);
+    const proxyAddress = accounts[0];
 
     // Deploy contracts
-    auctionContract = await DutchAuction.new(startPriceWei.toNumber());
+    auctionContract = await DutchAuction.new(startPriceWei.toNumber(), proxyAddress);
     tokenContract = await ShopToken.new(auctionContract.address, defaults.initialSupply, defaults.auctionSupply);
 
     // Setup and start auction

@@ -15,12 +15,15 @@ contract('AuctionScenarios', function (accounts) {
   let auctionContract;
   let tokenContract;
 
+  // 0 - owner, [1; 3] - bidders, 4 - proxy
+  const proxyAddress = accounts[4];
+
   // Reset contract state before each test case
   beforeEach(async function () {
     const startPrice = new BigNumber(20);
 
     // Deploy contracts
-    auctionContract = await DutchAuction.new(startPrice.toNumber());
+    auctionContract = await DutchAuction.new(startPrice.toNumber(), proxyAddress);
     tokenContract = await ShopToken.new(auctionContract.address, defaults.initialSupply, defaults.auctionSupply);
 
     // Setup and start auction
@@ -35,6 +38,11 @@ contract('AuctionScenarios', function (accounts) {
 
   async function assertAcceptedBid(id, amount) {
     const result = await auctionContract.sendTransaction({ from: accounts[id], value: amount });
+    assert.equal(result.logs[0].event, events.BID_ACCEPTED, "Should fire `BidAccepted` event");
+  }
+
+  async function assertAcceptedBitcoinBid(id, amount) {
+    const result = await auctionContract.placeBitcoinBid(accounts[id], amount, { from: proxyAddress });
     assert.equal(result.logs[0].event, events.BID_ACCEPTED, "Should fire `BidAccepted` event");
   }
 
@@ -254,6 +262,42 @@ contract('AuctionScenarios', function (accounts) {
 
     // Place 3rd bid
     await assertPartiallyRefundedBid(3, bids.third, transfers.third, endings.SoldOutBonus);
+    await assertReceivedWei(received.after3);
+
+    // Fast-forward 7 days to claim tokens
+    await increaseTime(byDays(8));
+
+    // Verify token balances
+    await assertBidResult(1, results.bidderA);
+    await assertBidResult(2, results.bidderB);
+    await assertBidResult(3, results.bidderC);
+  });
+
+  /*
+   * === Auction Scenario V ===
+   * 
+   * Same as Scenario I but bids are placed by proxy from Bitcoin funding
+   */
+  it("Should verify Auction Scenario V", async function () {
+    // Bidder simulation parameters
+    const bids = { first: 40000, second: 30000, third: 80000 };
+    const transfers = { first: 40000, second: 30000, third: 87500 };
+    const received = { after1: 40000, after2: 70000, after3: 150000 };
+    const results = { bidderA: 2666, bidderB: 2000, bidderC: 5333 };
+
+    // Place 1st bid
+    await assertAcceptedBitcoinBid(1, bids.first);
+    await assertReceivedWei(received.after1);
+
+    // Fast-forward 1st day to decrease price
+    await increaseTime(byDays(1));
+
+    // Place 2nd bid
+    await assertAcceptedBitcoinBid(2, bids.second);
+    await assertReceivedWei(received.after2);
+
+    // Place 3rd bid
+    await assertAcceptedBitcoinBid(3, bids.third);
     await assertReceivedWei(received.after3);
 
     // Fast-forward 7 days to claim tokens
