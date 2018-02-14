@@ -12,7 +12,7 @@
     "lint": "solium -d contracts/",
     "migrate": "run-with-testrpc 'truffle migrate'",
     "test": "run-with-testrpc 'truffle test'",
-    "testrpc": "ganache-cli"
+    "testrpc": "ganache-cli --deterministic --unlock 0"
   },
   "dependencies": {
     "truffle": "^4.0.4",
