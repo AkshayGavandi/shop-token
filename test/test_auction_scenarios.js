@@ -2,7 +2,7 @@ import BigNumber from 'bignumber.js';
 import expectThrow from 'zeppelin-solidity/test/helpers/expectThrow';
 import increaseTime from 'zeppelin-solidity/test/helpers/increaseTime';
 
-import byDays from './lib/helpers.js';
+import helpers from './lib/helpers.js';
 import defaults from './lib/defaults.js';
 import endings from './lib/endings.js';
 import events from './lib/events.js';
@@ -103,7 +103,7 @@ contract('AuctionScenarios', function (accounts) {
     await assertReceivedWei(received.after1);
 
     // Fast-forward 1st day to decrease price
-    await increaseTime(byDays(1));
+    await increaseTime(helpers.byDays(1));
 
     // Place 2nd bid
     await assertAcceptedBid(2, bids.second);
@@ -114,7 +114,7 @@ contract('AuctionScenarios', function (accounts) {
     await assertReceivedWei(received.after3);
 
     // Fast-forward 7 days to claim tokens
-    await increaseTime(byDays(8));
+    await increaseTime(helpers.byDays(8));
 
     // Verify token balances
     await assertBidResult(1, results.bidderA);
@@ -153,7 +153,7 @@ contract('AuctionScenarios', function (accounts) {
     await assertReceivedWei(received.after1);
 
     // Fast-forward 1st day to decrease price
-    await increaseTime(byDays(1));
+    await increaseTime(helpers.byDays(1));
 
     // Place 2nd bid
     await assertAcceptedBid(2, bids.second);
@@ -164,7 +164,7 @@ contract('AuctionScenarios', function (accounts) {
     await assertReceivedWei(received.after3);
 
     // Fast-forward 7 days to claim tokens
-    await increaseTime(byDays(8));
+    await increaseTime(helpers.byDays(8));
 
     // Verify token balances
     await assertBidResult(1, results.bidderA);
@@ -203,7 +203,7 @@ contract('AuctionScenarios', function (accounts) {
     await assertReceivedWei(received.after1);
 
     // Fast-forward 1st day to decrease price
-    await increaseTime(byDays(1));
+    await increaseTime(helpers.byDays(1));
 
     // Place 2nd bid
     await assertAcceptedBid(2, bids.second);
@@ -214,7 +214,7 @@ contract('AuctionScenarios', function (accounts) {
     await assertReceivedWei(received.after3);
 
     // Fast-forward 7 days to claim tokens
-    await increaseTime(byDays(8));
+    await increaseTime(helpers.byDays(8));
 
     // Verify token balances
     await assertBidResult(1, results.bidderA);
@@ -254,7 +254,7 @@ contract('AuctionScenarios', function (accounts) {
     await assertReceivedWei(received.after1);
 
     // Fast-forward 1st day to decrease price
-    await increaseTime(byDays(1));
+    await increaseTime(helpers.byDays(1));
 
     // Place 2nd bid
     await assertAcceptedBid(2, bids.second);
@@ -265,7 +265,7 @@ contract('AuctionScenarios', function (accounts) {
     await assertReceivedWei(received.after3);
 
     // Fast-forward 7 days to claim tokens
-    await increaseTime(byDays(8));
+    await increaseTime(helpers.byDays(8));
 
     // Verify token balances
     await assertBidResult(1, results.bidderA);
@@ -290,7 +290,7 @@ contract('AuctionScenarios', function (accounts) {
     await assertReceivedWei(received.after1);
 
     // Fast-forward 1st day to decrease price
-    await increaseTime(byDays(1));
+    await increaseTime(helpers.byDays(1));
 
     // Place 2nd bid
     await assertAcceptedBitcoinBid(2, bids.second);
@@ -301,7 +301,7 @@ contract('AuctionScenarios', function (accounts) {
     await assertReceivedWei(received.after3);
 
     // Fast-forward 7 days to claim tokens
-    await increaseTime(byDays(8));
+    await increaseTime(helpers.byDays(8));
 
     // Verify token balances
     await assertBidResult(1, results.bidderA);

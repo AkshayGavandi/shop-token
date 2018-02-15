@@ -1,8 +1,9 @@
 pragma solidity ^0.4.17;
 
+import "./PriceDecay150.sol";
 import "./ShopToken.sol";
 
-contract DutchAuction {
+contract DutchAuction is PriceDecay150 {
     // Auction Bid
     struct Bid {
         uint256 price;
@@ -82,47 +83,7 @@ contract DutchAuction {
     uint256 public end_time;
 
     // Wait 7 days after the end of the auction, before anyone can claim tokens
-    uint256 constant public TOKEN_CLAIM_DELAY_PERIOD = 7 days;    
-
-    // Auction duration, in days
-    uint256 public duration = 30;
-
-    // Precision for price calculation
-    uint256 public precision = 10 ** 13;
-
-    // Price decay rates per day
-    uint[30] public rates = [
-        precision,
-        7694472807310,
-        5920491178244,
-        4555505837691,
-        3505221579166,
-        2697083212449,
-        2075263343724,
-        1596805736629,
-        1228657831905,
-        945387427708,
-        727425785487,
-        559715792577,
-        430671794580,
-        331379241228,
-        254978856053,
-        196192787434,
-        150960006790,
-        116155766724,
-        89375738847,
-        68769919219,
-        52914827339,
-        40715170006,
-        31328176846,
-        24105380484,
-        18547819465,
-        14271569251,
-        10981220152,
-        8449469985,
-        6501421703,
-        5002501251
-    ];    
+    uint256 constant public TOKEN_CLAIM_DELAY_PERIOD = 7 days;
 
     // Stage modifier
     modifier atStage(Stages _stage) {
@@ -242,19 +203,19 @@ contract DutchAuction {
         return tokenCount;
     }
 
-    // Returns days passed
-    function getDays() public atStage(Stages.AuctionStarted) view returns (uint256) {
-        return (block.timestamp - start_time) / 86400;
+    // Returns intervals passed
+    function getIntervals() public atStage(Stages.AuctionStarted) view returns (uint256) {
+        return (block.timestamp - start_time) / interval_divider;
     }
 
     // Returns current price
-    function getPrice() public atStage(Stages.AuctionStarted) view returns (uint) {
-        uint256 _day = getDays();
-        if (_day > 29) {
-            _day = 29;
+    function getPrice() public atStage(Stages.AuctionStarted) view returns (uint256) {
+        uint256 currentInterval = getIntervals();
+        if (currentInterval > intervals - 1) {
+            currentInterval = intervals - 1;
         }
 
-        return (price_start * rates[_day]) / precision;
+        return calcPrice(price_start, currentInterval);
     }
 
     // Generic bid validation from ETH or BTC origin
@@ -263,14 +224,14 @@ contract DutchAuction {
         require(!bids[sender].placed);
 
         // Automatically end auction if date limit exceeded
-        uint256 currentDay = (block.timestamp - start_time) / 86400;
-        if (currentDay > duration) {       
+        uint256 currentInterval = (block.timestamp - start_time) / interval_divider;
+        if (currentInterval > intervals) {       
             endImmediately(price_final, Endings.TimeLimit);
             return false;
         }
 
         // Check if value of received bids equals or exceeds the implied value of all tokens
-        uint256 currentPrice = price_start * rates[currentDay] / precision;
+        uint256 currentPrice = calcPrice(price_start, currentInterval);
         uint256 acceptableWei = (currentPrice * initial_offering) - received_wei;
         if (bidValue > acceptableWei) {
             // Place last bid with oversubscription bonus

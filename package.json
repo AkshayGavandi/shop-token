@@ -8,6 +8,7 @@
   },
   "scripts": {
     "build": "truffle compile",
+    "benchmark": "truffle exec test/benchmarks/benchmark_gas_usage.js",
     "coverage": "solidity-coverage",
     "lint": "solium -d contracts/",
     "migrate": "run-with-testrpc 'truffle migrate'",
@@ -15,6 +16,8 @@
     "testrpc": "ganache-cli --deterministic --unlock 0"
   },
   "dependencies": {
+    "cli-table": "^0.3.1",
+    "sprintf-js": "^1.1.1",
     "truffle": "^4.0.4",
     "zeppelin-solidity": "^1.5.0"
   },
