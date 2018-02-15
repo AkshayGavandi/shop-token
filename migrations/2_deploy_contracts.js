@@ -1,24 +1,25 @@
+const BigNumber = require('bignumber.js');
+
 var DutchAuction = artifacts.require("DutchAuction");
 var ShopToken = artifacts.require("ShopToken");
 
 module.exports = function (deployer, network, accounts) {
-  // Mint 1B tokens, transfer 100K for dutch auction
-  const multiplier = 10 ** 18;
+  // Mint 1B tokens
+  const multiplier = new BigNumber(10).pow(18).toString();
+  const initialSupply = new BigNumber(10).pow(9).multipliedBy(multiplier).toString();
 
   // Token constructor parameters
-  const initialSupply = (10 ** 9) * multiplier;
   const offering = 10000;
   const bonus = 500;
   const auctionSupply = offering + bonus;
 
-  // Start with 500 Wei price per token unit
+  // Auction constructor parameters
   const priceStart = 500;
-
-  // Proxy address to place BTC bids
+  const claimPeriod = 86400 * 7;
   const proxyAddress = accounts[0];
 
   // Deploy
-  deployer.deploy(DutchAuction, priceStart, proxyAddress).then(function () {
+  deployer.deploy(DutchAuction, priceStart, claimPeriod, proxyAddress).then(function () {
     return deployer.deploy(ShopToken, DutchAuction.address, initialSupply, auctionSupply);
   });
 };

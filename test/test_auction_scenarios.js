@@ -23,7 +23,7 @@ contract('AuctionScenarios', function (accounts) {
     const startPrice = new BigNumber(20);
 
     // Deploy contracts
-    auctionContract = await DutchAuction.new(startPrice.toNumber(), proxyAddress);
+    auctionContract = await DutchAuction.new(startPrice.toNumber(), defaults.claimPeriod, proxyAddress);
     tokenContract = await ShopToken.new(auctionContract.address, defaults.initialSupply, defaults.auctionSupply);
 
     // Setup and start auction

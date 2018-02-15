@@ -1,5 +1,6 @@
 // Dutch auction constructor parameters
 const priceStart = 500;
+const claimPeriod = 86400 * 7;
 const offering = 10 ** 4;
 const bonus = 500;
 
@@ -16,5 +17,6 @@ module.exports = {
   tokenSupply,
   offering,
   bonus,
-  priceStart
+  priceStart,
+  claimPeriod
 };

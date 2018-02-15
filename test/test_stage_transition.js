@@ -14,7 +14,7 @@ contract('StageTransition', function (accounts) {
   // Reset contract state before each test case
   beforeEach(async function () {
     const proxyAddress = accounts[0];
-    auctionContract = await DutchAuction.new(defaults.priceStart, proxyAddress);
+    auctionContract = await DutchAuction.new(defaults.priceStart, defaults.claimPeriod, proxyAddress);
     tokenContract = await ShopToken.new(auctionContract.address, defaults.initialSupply, defaults.auctionSupply);
   });
 

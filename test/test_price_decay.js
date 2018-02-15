@@ -45,7 +45,7 @@ contract('PriceDecay', function (accounts) {
     const proxyAddress = accounts[0];
 
     // Deploy contracts
-    auctionContract = await DutchAuction.new(startPriceWei.toNumber(), proxyAddress);
+    auctionContract = await DutchAuction.new(startPriceWei.toNumber(), defaults.claimPeriod, proxyAddress);
     tokenContract = await ShopToken.new(auctionContract.address, defaults.initialSupply, defaults.auctionSupply);
 
     // Setup and start auction
@@ -62,7 +62,6 @@ contract('PriceDecay', function (accounts) {
   async function assertPriceUSD(thePrice) {
     let price = await auctionContract.getPrice();
     let priceUSD = web3.fromWei(price, "ether").div(conversionRate).toFormat(2, BigNumber.ROUND_HALF_UP);
-    //console.log(priceUSD, thePrice);
     assert.equal(priceUSD, thePrice, "Current day price should be correct");
   }
 

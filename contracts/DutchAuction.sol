@@ -61,9 +61,6 @@ contract DutchAuction is PriceDecay150 {
     // Final price in wei
     uint256 public price_final;
 
-    // Token unit multiplier
-    uint256 public token_multiplier = 10 ** 18;
-
     // Number of received wei
     uint256 public received_wei = 0;
 
@@ -82,8 +79,8 @@ contract DutchAuction is PriceDecay150 {
     // Auction end time
     uint256 public end_time;
 
-    // Wait 7 days after the end of the auction, before anyone can claim tokens
-    uint256 constant public TOKEN_CLAIM_DELAY_PERIOD = 7 days;
+    // Time after the end of the auction, before anyone can claim tokens
+    uint256 public claim_period;
 
     // Stage modifier
     modifier atStage(Stages _stage) {
@@ -104,7 +101,7 @@ contract DutchAuction is PriceDecay150 {
     }
 
     // Constructor
-    function DutchAuction(uint256 _priceStart, address _proxyAddress) public {
+    function DutchAuction(uint256 _priceStart, uint256 _claimPeriod, address _proxyAddress) public {
         // Set auction owner address
         owner_address = msg.sender;
         proxy_address = _proxyAddress;
@@ -112,6 +109,7 @@ contract DutchAuction is PriceDecay150 {
         // Set auction parameters
         price_start = _priceStart;
         price_final = _priceStart;
+        claim_period = _claimPeriod;
 
         // Update auction stage and fire event
         current_stage = Stages.AuctionDeployed;
@@ -159,9 +157,7 @@ contract DutchAuction is PriceDecay150 {
 
     // End auction
     function endAuction() external isOwner atStage(Stages.AuctionStarted) {
-        // Update auction states and fire event
-        uint256 price = getPrice();
-        endImmediately(price, Endings.Manual);
+        endImmediately(price_final, Endings.Manual);
     }
 
     // Claim tokens
@@ -169,7 +165,7 @@ contract DutchAuction is PriceDecay150 {
         // Input validation
         require(bids[msg.sender].placed);
         require(!bids[msg.sender].claimed);   
-        require(block.timestamp > end_time + TOKEN_CLAIM_DELAY_PERIOD);
+        require(block.timestamp >= end_time + claim_period);
 
         // Calculate tokens to receive
         uint256 tokens = bids[msg.sender].transfer / price_final;
@@ -191,16 +187,6 @@ contract DutchAuction is PriceDecay150 {
             current_stage = Stages.TokensDistributed;
             TokensDistributed();
         }
-    }
-
-    // View tokens to be claimed during claim period
-    function viewTokensToClaim() external atStage(Stages.AuctionEnded) view returns (uint256) {
-        // Throw if no bid exists
-        require(bids[msg.sender].placed);
-        require(!bids[msg.sender].claimed);
-
-        uint256 tokenCount = bids[msg.sender].transfer / price_final;
-        return tokenCount;
     }
 
     // Returns intervals passed
@@ -257,11 +243,7 @@ contract DutchAuction is PriceDecay150 {
             endImmediately(currentPrice, Endings.SoldOut);
         } else {
             // Place bid and update last price
-            placeBidInner(sender, currentPrice, bidValue, isBitcoin);
-
-            if (currentPrice < price_final) {
-                price_final = currentPrice;
-            }            
+            placeBidInner(sender, currentPrice, bidValue, isBitcoin);          
         }
 
         return true;        
@@ -282,8 +264,11 @@ contract DutchAuction is PriceDecay150 {
         bids[sender] = bid;        
         BidAccepted(sender, price, value, isBitcoin);
 
-        // Update received wei value
+        // Update received wei and last price
         received_wei = received_wei + value;
+        if (price < price_final) {
+            price_final = price;
+        }
 
         // Send bid amount to owner
         if (!isBitcoin) {
