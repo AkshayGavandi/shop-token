@@ -11,11 +11,7 @@ Auction duration is **30 days**, price per token unit exponentially decreases ev
 We're using [:page_facing_up: Pre-calculated Price Decay Rates](https://docs.google.com/spreadsheets/d/1L2JWqICu36N31yx_oH9bG9ypCr16tkKsXE37WythWjk/edit#gid=0) to avoid overflows and reduce computations (and therefore, gas price) during bidding.
 
 Auction stages:
-* `AuctionDeployed`
-* `AuctionSetup`
-* `AuctionStarted`
-* `AuctionEnded`
-* `TokensDistributed`
+`AuctionDeployed` ⇒ `AuctionStarted` ⇒ `AuctionEnded` ⇒ `TokensDistributed`
 
 # Dependencies
 

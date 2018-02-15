@@ -47,10 +47,7 @@ contract('PriceDecay', function (accounts) {
     // Deploy contracts
     auctionContract = await DutchAuction.new(startPriceWei.toNumber(), defaults.claimPeriod, proxyAddress);
     tokenContract = await ShopToken.new(auctionContract.address, defaults.initialSupply, defaults.auctionSupply);
-
-    // Setup and start auction
-    await auctionContract.setupAuction(tokenContract.address, defaults.offering, defaults.bonus);
-    await auctionContract.startAuction();
+    await auctionContract.startAuction(tokenContract.address, defaults.offering, defaults.bonus);
   });
 
   async function assertIntervalsPassed(value) {

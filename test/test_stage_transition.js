@@ -10,10 +10,10 @@ var ShopToken = artifacts.require("./ShopToken.sol");
 contract('StageTransition', function (accounts) {
   let auctionContract;
   let tokenContract;
+  const proxyAddress = accounts[0];
 
   // Reset contract state before each test case
   beforeEach(async function () {
-    const proxyAddress = accounts[0];
     auctionContract = await DutchAuction.new(defaults.priceStart, defaults.claimPeriod, proxyAddress);
     tokenContract = await ShopToken.new(auctionContract.address, defaults.initialSupply, defaults.auctionSupply);
   });
@@ -31,46 +31,39 @@ contract('StageTransition', function (accounts) {
     assert.equal(tokenBalance.toNumber(), defaults.tokenSupply, "Token balance should be 990M");
   });
 
+  it("Should verify `onlyOwner` modifier", async function () {
+    // Throw on `AuctionDeployed` ⇒ `AuctionStarted`
+    await expectThrow(auctionContract.startAuction(tokenContract.address, defaults.offering, defaults.bonus, { from: accounts[1] }));
+
+    // Throw on `AuctionStarted` ⇒ `AuctionEnded`
+    await auctionContract.startAuction(tokenContract.address, defaults.offering, defaults.bonus);
+    await expectThrow(auctionContract.endAuction({ from: accounts[1] }));
+  });  
+
   it("Should verify `AuctionDeployed` stage", async function () {
     await assertCurrentStage(stages.AuctionDeployed)
-    await expectThrow(auctionContract.startAuction());
-    await expectThrow(auctionContract.endAuction());
-  });
 
-  it("Should verify `AuctionSetup` stage", async function () {
-    // Initial contract setup & event verification
-    const result = await auctionContract.setupAuction(tokenContract.address, defaults.offering, defaults.bonus);
-    assert.equal(result.logs[0].event, events.AUCTION_SETUP, "Should fire `AuctionSetup` event")
-
-    // Verify current stage & impossible transition
-    await assertCurrentStage(stages.AuctionSetup)
-    await expectThrow(auctionContract.setupAuction(tokenContract.address, defaults.offering, defaults.bonus));
+    // Can't jump over `AuctionStarted` stage
     await expectThrow(auctionContract.endAuction());
   });
 
   it("Should verify `AuctionStarted` stage", async function () {
-    // Initial contract setup & event verification
-    await auctionContract.setupAuction(tokenContract.address, defaults.offering, defaults.bonus);
-    const result = await auctionContract.startAuction();
-    assert.equal(result.logs[0].event, events.AUCTION_STARTED, "Should fire `AuctionStarted` event")
-
-    // Verify current stage & impossible transition
-    await assertCurrentStage(stages.AuctionStarted)
-    await expectThrow(auctionContract.startAuction());
-    await expectThrow(auctionContract.setupAuction(tokenContract.address, defaults.offering, defaults.bonus));
+    // Perform stage transition, verify fired event and current stage
+    const result = await auctionContract.startAuction(tokenContract.address, defaults.offering, defaults.bonus);
+    assert.equal(result.logs[0].event, events.AUCTION_STARTED, "Should fire `AuctionStarted` event");
+    await assertCurrentStage(stages.AuctionStarted);
   });
 
   it("Should verify `AuctionEnded` stage", async function () {
-    // Initial contract setup & event verification
-    await auctionContract.setupAuction(tokenContract.address, defaults.offering, defaults.bonus);
-    await auctionContract.startAuction();
+    // Initial contract setup
+    await auctionContract.startAuction(tokenContract.address, defaults.offering, defaults.bonus);
     const result = await auctionContract.endAuction();
-    assert.equal(result.logs[0].event, events.AUCTION_ENDED, "Should fire `AuctionEnded` event")
+    
+    // Check fired event & verify current stage
+    assert.equal(result.logs[0].event, events.AUCTION_ENDED, "Should fire `AuctionEnded` event");
+    await assertCurrentStage(stages.AuctionEnded);
 
-    // Verify current stage & impossible transition
-    await assertCurrentStage(stages.AuctionEnded)
-    await expectThrow(auctionContract.startAuction());
-    await expectThrow(auctionContract.setupAuction(tokenContract.address, defaults.offering, defaults.bonus));
-    await expectThrow(auctionContract.endAuction());
+    // Can't move back
+    await expectThrow(auctionContract.startAuction(tokenContract.address, defaults.offering, defaults.bonus));
   });
 });

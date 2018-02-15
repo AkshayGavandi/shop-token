@@ -16,7 +16,6 @@ contract DutchAuction is PriceDecay150 {
     // Auction Stages
     enum Stages {
         AuctionDeployed,
-        AuctionSetup,
         AuctionStarted,
         AuctionEnded,
         TokensDistributed
@@ -32,9 +31,8 @@ contract DutchAuction is PriceDecay150 {
 
     // Auction Events
     event AuctionDeployed(uint256 indexed priceStart);
-    event AuctionSetup();
-    event AuctionStarted();
-    event AuctionEnded(uint256 priceFinal, Endings ending);    
+    event AuctionStarted(uint256 _startTime);
+    event AuctionEnded(uint256 priceFinal, uint256 _endTime, Endings ending);    
     event BidAccepted(address indexed _address, uint256 price, uint256 transfer, bool isBitcoin);
     event BidPartiallyRefunded(address indexed _address, uint256 transfer);
     event TokensClaimed(address indexed _address, uint256 amount);
@@ -121,18 +119,8 @@ contract DutchAuction is PriceDecay150 {
         placeBid();
     }
 
-    // Place Ethereum bid
-    function placeBid() public payable atStage(Stages.AuctionStarted) returns (bool) {
-        return placeBidGeneric(msg.sender, msg.value, false);
-    }
-
-    // Place Bitcoin bid
-    function placeBitcoinBid(address beneficiary, uint256 bidValue) external isProxy atStage(Stages.AuctionStarted) returns (bool) {
-        return placeBidGeneric(beneficiary, bidValue, true);
-    }   
-
     // Setup auction
-    function setupAuction(address _tokenAddress, uint256 offering, uint256 bonus) external isOwner atStage(Stages.AuctionDeployed) {
+    function startAuction(address _tokenAddress, uint256 offering, uint256 bonus) external isOwner atStage(Stages.AuctionDeployed) {
         // Initialize external contract type      
         token = ShopToken(_tokenAddress);
         uint256 balance = token.balanceOf(address(this));
@@ -143,16 +131,9 @@ contract DutchAuction is PriceDecay150 {
         last_bonus = bonus;
 
         // Update auction stage and fire event
-        current_stage = Stages.AuctionSetup;
-        AuctionSetup();
-    }
-
-    // Starts auction
-    function startAuction() external isOwner atStage(Stages.AuctionSetup) {
-        // Update auction stage and fire event
-        current_stage = Stages.AuctionStarted;
         start_time = block.timestamp;
-        AuctionStarted();
+        current_stage = Stages.AuctionStarted;
+        AuctionStarted(start_time);
     }
 
     // End auction
@@ -160,49 +141,15 @@ contract DutchAuction is PriceDecay150 {
         endImmediately(price_final, Endings.Manual);
     }
 
-    // Claim tokens
-    function claimTokens() external atStage(Stages.AuctionEnded) {
-        // Input validation
-        require(bids[msg.sender].placed);
-        require(!bids[msg.sender].claimed);   
-        require(block.timestamp >= end_time + claim_period);
-
-        // Calculate tokens to receive
-        uint256 tokens = bids[msg.sender].transfer / price_final;
-        uint256 auctionTokensBalance = token.balanceOf(address(this));
-        if (tokens > auctionTokensBalance) {
-            tokens = auctionTokensBalance;
-        }
-
-        // Transfer tokens and fire event
-        token.transfer(msg.sender, tokens);
-        TokensClaimed(msg.sender, tokens);
-
-        // Update the total amount of funds for which tokens have been claimed
-        claimed_wei = claimed_wei + bids[msg.sender].transfer;
-        bids[msg.sender].claimed = true;
-
-        // Set new state if all tokens distributed
-        if (claimed_wei >= received_wei) {
-            current_stage = Stages.TokensDistributed;
-            TokensDistributed();
-        }
+    // Place Ethereum bid
+    function placeBid() public payable atStage(Stages.AuctionStarted) returns (bool) {
+        return placeBidGeneric(msg.sender, msg.value, false);
     }
 
-    // Returns intervals passed
-    function getIntervals() public atStage(Stages.AuctionStarted) view returns (uint256) {
-        return (block.timestamp - start_time) / interval_divider;
-    }
-
-    // Returns current price
-    function getPrice() public atStage(Stages.AuctionStarted) view returns (uint256) {
-        uint256 currentInterval = getIntervals();
-        if (currentInterval > intervals - 1) {
-            currentInterval = intervals - 1;
-        }
-
-        return calcPrice(price_start, currentInterval);
-    }
+    // Place Bitcoin bid
+    function placeBitcoinBid(address beneficiary, uint256 bidValue) external isProxy atStage(Stages.AuctionStarted) returns (bool) {
+        return placeBidGeneric(beneficiary, bidValue, true);
+    }    
 
     // Generic bid validation from ETH or BTC origin
     function placeBidGeneric(address sender, uint256 bidValue, bool isBitcoin) private atStage(Stages.AuctionStarted) returns (bool) {
@@ -281,6 +228,52 @@ contract DutchAuction is PriceDecay150 {
         end_time = block.timestamp;
         price_final = atPrice;
         current_stage = Stages.AuctionEnded;
-        AuctionEnded(price_final, ending);        
+        AuctionEnded(price_final, end_time, ending);        
     }
+
+    // Claim tokens
+    function claimTokens() external atStage(Stages.AuctionEnded) {
+        // Input validation
+        require(bids[msg.sender].placed);
+        require(!bids[msg.sender].claimed);   
+        require(block.timestamp >= end_time + claim_period);
+
+        // Calculate tokens to receive
+        uint256 tokens = bids[msg.sender].transfer / price_final;
+        uint256 auctionTokensBalance = token.balanceOf(address(this));
+        if (tokens > auctionTokensBalance) {
+            tokens = auctionTokensBalance;
+        }
+
+        // Transfer tokens and fire event
+        token.transfer(msg.sender, tokens);
+        TokensClaimed(msg.sender, tokens);
+
+        // Update the total amount of funds for which tokens have been claimed
+        claimed_wei = claimed_wei + bids[msg.sender].transfer;
+        bids[msg.sender].claimed = true;
+
+        // Set new state if all tokens distributed
+        if (claimed_wei >= received_wei) {
+            current_stage = Stages.TokensDistributed;
+            TokensDistributed();
+        }
+    }
+
+    // Returns intervals passed
+    // Used for unit tests
+    function getIntervals() public atStage(Stages.AuctionStarted) view returns (uint256) {
+        return (block.timestamp - start_time) / interval_divider;
+    }
+
+    // Returns current price
+    // Used for unit tests
+    function getPrice() public atStage(Stages.AuctionStarted) view returns (uint256) {
+        uint256 currentInterval = getIntervals();
+        if (currentInterval > intervals - 1) {
+            currentInterval = intervals - 1;
+        }
+
+        return calcPrice(price_start, currentInterval);
+    }     
 }

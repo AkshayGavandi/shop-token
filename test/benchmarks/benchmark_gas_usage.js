@@ -61,12 +61,8 @@ module.exports = async function (callback) {
     const tokenContract = await ShopToken.new(auctionContract.address, defaults.initialSupply, defaults.auctionSupply);
     accumulateStats(tokenContract.transactionHash, "ShopToken()", true);
 
-    // Measure setupAuction()
-    const setupAuction = await auctionContract.setupAuction(tokenContract.address, defaults.offering, defaults.bonus);
-    accumulateStats(setupAuction.tx, "setupAuction()", true);
-    
     // Measure startAuction()
-    const startAuction = await auctionContract.startAuction();
+    const startAuction = await auctionContract.startAuction(tokenContract.address, defaults.offering, defaults.bonus);
     accumulateStats(startAuction.tx, "startAuction()", true);
 
     // Measure total deployment costs

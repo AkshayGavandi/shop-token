@@ -25,10 +25,7 @@ contract('AuctionScenarios', function (accounts) {
     // Deploy contracts
     auctionContract = await DutchAuction.new(startPrice.toNumber(), defaults.claimPeriod, proxyAddress);
     tokenContract = await ShopToken.new(auctionContract.address, defaults.initialSupply, defaults.auctionSupply);
-
-    // Setup and start auction
-    await auctionContract.setupAuction(tokenContract.address, defaults.offering, defaults.bonus);
-    await auctionContract.startAuction();
+    await auctionContract.startAuction(tokenContract.address, defaults.offering, defaults.bonus);
   });
 
   async function assertReceivedWei(value) {
@@ -274,11 +271,11 @@ contract('AuctionScenarios', function (accounts) {
   });
 
   /*
-   * === Auction Scenario V ===
+   * === Auction Scenario BTC ===
    * 
    * Same as Scenario I but bids are placed by proxy from Bitcoin funding
    */
-  it("Should verify Auction Scenario V", async function () {
+  it("Should verify Auction Scenario BTC", async function () {
     // Bidder simulation parameters
     const bids = { first: 40000, second: 30000, third: 80000 };
     const transfers = { first: 40000, second: 30000, third: 87500 };
