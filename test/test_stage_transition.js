@@ -23,23 +23,6 @@ contract('StageTransition', function (accounts) {
     assert.equal(current_stage, stage, "Current stage should be correct");
   }
 
-  it("Should verify initial supply values", async function () {
-    const auctionBalance = await tokenContract.balanceOf(auctionContract.address);
-    const tokenBalance = await tokenContract.balanceOf(accounts[0]);
-
-    assert.equal(auctionBalance.toNumber(), defaults.auctionSupply, "Auction balance should be 10.5K");
-    assert.equal(tokenBalance.toNumber(), defaults.tokenSupply, "Token balance should be 990M");
-  });
-
-  it("Should verify `onlyOwner` modifier", async function () {
-    // Throw on `AuctionDeployed` ⇒ `AuctionStarted`
-    await expectThrow(auctionContract.startAuction(tokenContract.address, defaults.offering, defaults.bonus, { from: accounts[1] }));
-
-    // Throw on `AuctionStarted` ⇒ `AuctionEnded`
-    await auctionContract.startAuction(tokenContract.address, defaults.offering, defaults.bonus);
-    await expectThrow(auctionContract.endAuction({ from: accounts[1] }));
-  });  
-
   it("Should verify `AuctionDeployed` stage", async function () {
     await assertCurrentStage(stages.AuctionDeployed)
 

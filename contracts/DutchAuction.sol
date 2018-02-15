@@ -153,12 +153,9 @@ contract DutchAuction is PriceDecay150 {
 
     // Generic bid validation from ETH or BTC origin
     function placeBidGeneric(address sender, uint256 bidValue, bool isBitcoin) private atStage(Stages.AuctionStarted) {
-        // Allow only a single bid per address
-        require(!bids[sender].placed);
-
-        // Automatically end auction if date limit exceeded
+        // Input validation
         uint256 currentInterval = (block.timestamp - start_time) / interval_divider;
-        require(currentInterval < intervals);
+        require(!bids[sender].placed && currentInterval < intervals);
 
         // Check if value of received bids equals or exceeds the implied value of all tokens
         uint256 currentPrice = calcPrice(price_start, currentInterval);
@@ -229,14 +226,14 @@ contract DutchAuction is PriceDecay150 {
     // Claim tokens
     function claimTokens() external atStage(Stages.AuctionEnded) {
         // Input validation
-        require(bids[msg.sender].placed);
-        require(!bids[msg.sender].claimed);   
-        require(block.timestamp >= end_time + claim_period);
+        require(block.timestamp >= end_time + claim_period);        
+        require(bids[msg.sender].placed && !bids[msg.sender].claimed);
 
         // Calculate tokens to receive
         uint256 tokens = bids[msg.sender].transfer / price_final;
         uint256 auctionTokensBalance = token.balanceOf(address(this));
         if (tokens > auctionTokensBalance) {
+            // Unreachable code
             tokens = auctionTokensBalance;
         }
 
