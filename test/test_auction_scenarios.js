@@ -15,17 +15,33 @@ contract('AuctionScenarios', function (accounts) {
   let auctionContract;
   let tokenContract;
 
+  const startPrice = new BigNumber(20);
+  const minimumBid = 1;
+
   // 0 - owner, [1; 3] - bidders, 4 - proxy
   const proxyAddress = accounts[4];
 
   // Reset contract state before each test case
   beforeEach(async function () {
-    const startPrice = new BigNumber(20);
+    auctionContract = await DutchAuction.new(
+      startPrice.toString(), 
+      defaults.pricePrecision, 
+      minimumBid,
+      defaults.claimPeriod, 
+      proxyAddress
+    );
 
-    // Deploy contracts
-    auctionContract = await DutchAuction.new(startPrice.toNumber(), defaults.claimPeriod, proxyAddress);
-    tokenContract = await ShopToken.new(auctionContract.address, defaults.initialSupply, defaults.auctionSupply);
-    await auctionContract.startAuction(tokenContract.address, defaults.offering, defaults.bonus);
+    tokenContract = await ShopToken.new(
+      auctionContract.address, 
+      defaults.initialSupply, 
+      defaults.auctionSupply
+    );
+    
+    await auctionContract.startAuction(
+      tokenContract.address, 
+      defaults.offering, 
+      defaults.bonus
+    );
   });
 
   async function assertReceivedWei(value) {

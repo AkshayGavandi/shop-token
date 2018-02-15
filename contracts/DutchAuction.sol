@@ -80,6 +80,12 @@ contract DutchAuction is PriceDecay150 {
     // Time after the end of the auction, before anyone can claim tokens
     uint256 public claim_period;
 
+    // Minimum bid amount
+    uint256 public minimum_bid;
+
+    // Price precision
+    uint256 public price_precision;
+
     // Stage modifier
     modifier atStage(Stages _stage) {
         require(current_stage == _stage);
@@ -99,7 +105,15 @@ contract DutchAuction is PriceDecay150 {
     }
 
     // Constructor
-    function DutchAuction(uint256 _priceStart, uint256 _claimPeriod, address _proxyAddress) public {
+    function DutchAuction(
+        uint256 _priceStart, 
+        uint256 _pricePrecision,
+        uint256 _minimumBid, 
+        uint256 _claimPeriod, 
+        address _proxyAddress
+    ) 
+        public 
+    {
         // Set auction owner address
         owner_address = msg.sender;
         proxy_address = _proxyAddress;
@@ -107,6 +121,8 @@ contract DutchAuction is PriceDecay150 {
         // Set auction parameters
         price_start = _priceStart;
         price_final = _priceStart;
+        price_precision = _pricePrecision;
+        minimum_bid = _minimumBid;
         claim_period = _claimPeriod;
 
         // Update auction stage and fire event
@@ -116,11 +132,19 @@ contract DutchAuction is PriceDecay150 {
 
     // Default fallback function
     function () public payable atStage(Stages.AuctionStarted) {
-        placeBid();
+        placeBidGeneric(msg.sender, msg.value, false);
     }
 
     // Setup auction
-    function startAuction(address _tokenAddress, uint256 offering, uint256 bonus) external isOwner atStage(Stages.AuctionDeployed) {
+    function startAuction(
+        address _tokenAddress, 
+        uint256 offering, 
+        uint256 bonus
+    ) 
+        external 
+        isOwner 
+        atStage(Stages.AuctionDeployed) 
+    {
         // Initialize external contract type      
         token = ShopToken(_tokenAddress);
         uint256 balance = token.balanceOf(address(this));
@@ -141,21 +165,23 @@ contract DutchAuction is PriceDecay150 {
         endImmediately(price_final, Endings.Manual);
     }
 
-    // Place Ethereum bid
-    function placeBid() public payable atStage(Stages.AuctionStarted) {
-        return placeBidGeneric(msg.sender, msg.value, false);
-    }
-
     // Place Bitcoin bid
     function placeBitcoinBid(address beneficiary, uint256 bidValue) external isProxy atStage(Stages.AuctionStarted) {
         return placeBidGeneric(beneficiary, bidValue, true);
     }    
 
     // Generic bid validation from ETH or BTC origin
-    function placeBidGeneric(address sender, uint256 bidValue, bool isBitcoin) private atStage(Stages.AuctionStarted) {
+    function placeBidGeneric(
+        address sender, 
+        uint256 bidValue, 
+        bool isBitcoin
+    ) 
+        private 
+        atStage(Stages.AuctionStarted) 
+    {
         // Input validation
         uint256 currentInterval = (block.timestamp - start_time) / interval_divider;
-        require(!bids[sender].placed && currentInterval < intervals);
+        require(!bids[sender].placed && currentInterval < intervals && bidValue >= minimum_bid);
 
         // Check if value of received bids equals or exceeds the implied value of all tokens
         uint256 currentPrice = calcPrice(price_start, currentInterval);
@@ -189,7 +215,15 @@ contract DutchAuction is PriceDecay150 {
     }
 
     // Inner function for placing bid
-    function placeBidInner(address sender, uint256 price, uint256 value, bool isBitcoin) private atStage(Stages.AuctionStarted) {
+    function placeBidInner(
+        address sender, 
+        uint256 price, 
+        uint256 value, 
+        bool isBitcoin
+    ) 
+        private 
+        atStage(Stages.AuctionStarted) 
+    {
         // Create bid
         Bid memory bid = Bid({
             price: price,
@@ -230,7 +264,7 @@ contract DutchAuction is PriceDecay150 {
         require(bids[msg.sender].placed && !bids[msg.sender].claimed);
 
         // Calculate tokens to receive
-        uint256 tokens = bids[msg.sender].transfer / price_final;
+        uint256 tokens = (bids[msg.sender].transfer / price_final) * price_precision;
         uint256 auctionTokensBalance = token.balanceOf(address(this));
         if (tokens > auctionTokensBalance) {
             // Unreachable code

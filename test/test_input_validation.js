@@ -16,8 +16,19 @@ contract('InputValidation', function (accounts) {
   
     // Reset contract state before each test case
     beforeEach(async function () {
-      auctionContract = await DutchAuction.new(defaults.priceStart, defaults.claimPeriod, proxyAddress);
-      tokenContract = await ShopToken.new(auctionContract.address, defaults.initialSupply, defaults.auctionSupply);
+      auctionContract = await DutchAuction.new(
+        defaults.priceStart, 
+        defaults.pricePrecision, 
+        defaults.minimumBid, 
+        defaults.claimPeriod, 
+        proxyAddress
+      );
+      
+      tokenContract = await ShopToken.new(
+        auctionContract.address, 
+        defaults.initialSupply, 
+        defaults.auctionSupply
+      );
     });
 
     it("Should NOT allow stage transition by non-owner", async function () {
@@ -31,6 +42,11 @@ contract('InputValidation', function (accounts) {
 
     it("Should NOT allow to start auction with invalid balance", async function () {
       await expectThrow(auctionContract.startAuction(tokenContract.address, defaults.offering, defaults.bonus + 1));
+    });
+
+    it("Should NOT allow to place bid less than minimum value", async function () {
+      await auctionContract.startAuction(tokenContract.address, defaults.offering, defaults.bonus);
+      await expectThrow(auctionContract.sendTransaction({ value: defaults.minimumBid - 1 }));
     });
 
     it("Should NOT allow to place multiple bids", async function () {

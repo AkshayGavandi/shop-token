@@ -14,8 +14,19 @@ contract('StageTransition', function (accounts) {
 
   // Reset contract state before each test case
   beforeEach(async function () {
-    auctionContract = await DutchAuction.new(defaults.priceStart, defaults.claimPeriod, proxyAddress);
-    tokenContract = await ShopToken.new(auctionContract.address, defaults.initialSupply, defaults.auctionSupply);
+    auctionContract = await DutchAuction.new(
+      defaults.priceStart, 
+      defaults.pricePrecision, 
+      defaults.minimumBid, 
+      defaults.claimPeriod, 
+      proxyAddress
+    );
+    
+    tokenContract = await ShopToken.new(
+      auctionContract.address, 
+      defaults.initialSupply, 
+      defaults.auctionSupply
+    );
   });
 
   async function assertCurrentStage(stage) {

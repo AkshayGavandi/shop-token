@@ -14,6 +14,7 @@ var ShopToken = artifacts.require("./ShopToken.sol");
 contract('PriceDecay', function (accounts) {
   let auctionContract;
   let tokenContract;
+  const proxyAddress = accounts[0];  
 
   // Assuming 1 ETH = 1000 USD
   const conversionRate = 0.001;
@@ -22,12 +23,27 @@ contract('PriceDecay', function (accounts) {
   beforeEach(async function () {
     const startPrice = new BigNumber(19.99);
     const startPriceWei = startPrice.times(conversionRate).times(defaults.multiplier);
-    const proxyAddress = accounts[0];
 
     // Deploy contracts
-    auctionContract = await DutchAuction.new(startPriceWei.toNumber(), defaults.claimPeriod, proxyAddress);
-    tokenContract = await ShopToken.new(auctionContract.address, defaults.initialSupply, defaults.auctionSupply);
-    await auctionContract.startAuction(tokenContract.address, defaults.offering, defaults.bonus);
+    auctionContract = await DutchAuction.new(
+      startPriceWei.toString(), 
+      defaults.pricePrecision, 
+      defaults.minimumBid, 
+      defaults.claimPeriod, 
+      proxyAddress
+    );
+
+    tokenContract = await ShopToken.new(
+      auctionContract.address, 
+      defaults.initialSupply, 
+      defaults.auctionSupply
+    );
+    
+    await auctionContract.startAuction(
+      tokenContract.address, 
+      defaults.offering, 
+      defaults.bonus
+    );
   });
 
   async function assertIntervalsPassed(value) {

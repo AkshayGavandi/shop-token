@@ -2,16 +2,16 @@ var DutchAuction = artifacts.require("./DutchAuction.sol");
 var ShopToken = artifacts.require("./ShopToken.sol");
 
 const BigNumber = require('bignumber.js');
-const helpers = require('../lib/helpers.js');
-const defaults = require('../lib/defaults.js');
-const Table = require('cli-table');
 const sprintf = require('sprintf-js').sprintf;
+const Table = require('cli-table');
+
+const defaults = require('../lib/defaults.js');
+const helpers = require('../lib/helpers.js');
 
 module.exports = async function (callback) {
     let totalGas = 0;
     const coinbase = web3.eth.accounts[0];
     const proxyAddress = web3.eth.accounts[1];
-    const startPrice = new BigNumber(20);
 
     // Average and Fastest Gas Prices, 15 Feb 2018
     // From https://ethgasstation.info
@@ -54,7 +54,7 @@ module.exports = async function (callback) {
     }
 
     // Measure DutchAuction() constructor
-    const auctionContract = await DutchAuction.new(startPrice.toNumber(), 0, proxyAddress);
+    const auctionContract = await DutchAuction.new(defaults.priceStart, defaults.pricePrecision, defaults.minimumBid, 0, proxyAddress);
     accumulateStats(auctionContract.transactionHash, "DutchAuction()", true);
 
     // Measure ShopToken() constructor
