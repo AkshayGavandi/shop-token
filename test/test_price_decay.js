@@ -5,6 +5,7 @@ import increaseTime from 'zeppelin-solidity/test/helpers/increaseTime';
 
 import helpers from './lib/helpers.js';
 import defaults from './lib/defaults.js';
+import stages from './lib/stages.js';
 
 var DutchAuction = artifacts.require("./DutchAuction.sol");
 var ShopToken = artifacts.require("./ShopToken.sol");
@@ -70,4 +71,9 @@ contract('PriceDecay', function (accounts) {
       await assertPriceUSD(dailyPrices[i]);
     });
   }
+
+  it("Shouldn't accept bids after 30 days", async function () {
+    await increaseTime(helpers.byDays(30));
+    await expectThrow(auctionContract.sendTransaction({ value: 100000 }));
+  });  
 });

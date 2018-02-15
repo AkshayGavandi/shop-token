@@ -142,26 +142,23 @@ contract DutchAuction is PriceDecay150 {
     }
 
     // Place Ethereum bid
-    function placeBid() public payable atStage(Stages.AuctionStarted) returns (bool) {
+    function placeBid() public payable atStage(Stages.AuctionStarted) {
         return placeBidGeneric(msg.sender, msg.value, false);
     }
 
     // Place Bitcoin bid
-    function placeBitcoinBid(address beneficiary, uint256 bidValue) external isProxy atStage(Stages.AuctionStarted) returns (bool) {
+    function placeBitcoinBid(address beneficiary, uint256 bidValue) external isProxy atStage(Stages.AuctionStarted) {
         return placeBidGeneric(beneficiary, bidValue, true);
     }    
 
     // Generic bid validation from ETH or BTC origin
-    function placeBidGeneric(address sender, uint256 bidValue, bool isBitcoin) private atStage(Stages.AuctionStarted) returns (bool) {
+    function placeBidGeneric(address sender, uint256 bidValue, bool isBitcoin) private atStage(Stages.AuctionStarted) {
         // Allow only a single bid per address
         require(!bids[sender].placed);
 
         // Automatically end auction if date limit exceeded
         uint256 currentInterval = (block.timestamp - start_time) / interval_divider;
-        if (currentInterval > intervals) {       
-            endImmediately(price_final, Endings.TimeLimit);
-            return false;
-        }
+        require(currentInterval < intervals);
 
         // Check if value of received bids equals or exceeds the implied value of all tokens
         uint256 currentPrice = calcPrice(price_start, currentInterval);
@@ -191,9 +188,7 @@ contract DutchAuction is PriceDecay150 {
         } else {
             // Place bid and update last price
             placeBidInner(sender, currentPrice, bidValue, isBitcoin);          
-        }
-
-        return true;        
+        }     
     }
 
     // Inner function for placing bid
