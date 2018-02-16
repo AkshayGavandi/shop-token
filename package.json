@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "bootstrap": "^3.3.7",
-    "jquery": "^1.12.3",
+    "jquery": "^3.3.1",
     "jquery.animate-number": "^0.0.14",
     "moment": "^2.20.1",
     "sprintf-js": "^1.1.1",

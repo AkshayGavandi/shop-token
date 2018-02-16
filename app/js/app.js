@@ -41,6 +41,10 @@ App = {
       });
     },
 
+    htmlFadeIn: function(selector, value) {
+      $(selector).hide().html(value).fadeIn('slow');
+    },
+
     // Retrieve contract data and render
     showStatus: async function (token, account) {
       const auctionContract = await App.contracts.DutchAuction.deployed();
@@ -60,8 +64,8 @@ App = {
       const totalIntervals = await auctionContract.intervals.call(); 
 
       $('#currentPrice').prop('number', startPrice.toString()).animateNumber({ number: currentPrice.toString() }, 2500);
-      $('#currentInterval').html(currentInterval.toString());
-      $('#totalIntervals').html(totalIntervals.toString());
+      this.htmlFadeIn('#currentInterval', currentInterval.toString());
+      this.htmlFadeIn('#totalIntervals', totalIntervals.toString());
     },
 
     showCommon: async function(auctionContract) {
@@ -69,12 +73,12 @@ App = {
       const initialOffering = await auctionContract.initial_offering.call();
       const lastBonus = await auctionContract.last_bonus.call();
       
-      const totalTokens = web3.fromWei(initialOffering.toNumber(), 'ether');
-      const bonusTokens = web3.fromWei(lastBonus.toNumber(), 'ether');
-      
-      $('#currentStage').html(this.stageNames[currentStage]);
-      $('#initialOffering').html(new Intl.NumberFormat('en-US').format(totalTokens));
-      $('#lastBonus').html(new Intl.NumberFormat('en-US').format(bonusTokens));
+      const totalTokens = new Intl.NumberFormat('en-US').format(web3.fromWei(initialOffering.toNumber(), 'ether'));
+      const bonusTokens = new Intl.NumberFormat('en-US').format(web3.fromWei(lastBonus.toNumber(), 'ether'));
+    
+      this.htmlFadeIn('#currentStage', this.stageNames[currentStage]);
+      this.htmlFadeIn('#initialOffering', totalTokens);
+      this.htmlFadeIn('#lastBonus', bonusTokens);
     },
 
     showTime: async function(auctionContract) {
@@ -82,9 +86,9 @@ App = {
       const endTime = await auctionContract.end_time.call();
       const claimPeriod = await auctionContract.claim_period.call();      
       
-      $('#startTime').html(moment(startTime.toString(), "X").fromNow());
-      $('#endTime').html(this.parseEndTime(endTime.toString()));
-      $('#claimPeriod').html(moment.duration(claimPeriod.toNumber(), "seconds").humanize());      
+      this.htmlFadeIn('#startTime', moment(startTime.toString(), "X").fromNow());
+      this.htmlFadeIn('#endTime', this.parseEndTime(endTime.toString()));
+      this.htmlFadeIn('#claimPeriod', moment.duration(claimPeriod.toNumber(), "seconds").humanize());    
     },
 
     showFinancial: async function(auctionContract) {
@@ -97,23 +101,24 @@ App = {
       const receivedFunds = web3.fromWei(receivedWei.toNumber(), 'ether');
       const claimedFunds = web3.fromWei(claimedWei.toNumber(), 'ether');
       
-      $('#minimumBid').html(minimalBid);
-      $('#lastBid').html(lastBid.toString());
-      $('#receivedFunds').html(receivedFunds); 
-      $('#claimedFunds').html(claimedFunds); 
+      this.htmlFadeIn('#minimumBid', minimalBid);
+      this.htmlFadeIn('#lastBid', lastBid.toString());
+      this.htmlFadeIn('#receivedFunds', receivedFunds);
+      this.htmlFadeIn('#claimedFunds', claimedFunds);
     },
 
     showAddresses: async function(auctionContract) {
       const ownerAddress = await auctionContract.owner_address.call();
       const proxyAddress = await auctionContract.proxy_address.call();
       const walletAddress = await auctionContract.wallet_address.call();
-      $('#contractAddress').html(this.parseAddressLink(auctionContract.address));
-      $('#ownerAddress').html(this.parseAddressLink(ownerAddress));
-      $('#proxyAddress').html(this.parseAddressLink(proxyAddress));
-      $('#walletAddress').html(this.parseAddressLink(walletAddress));
+
+      this.htmlFadeIn('#contractAddress', this.etherscanLink(auctionContract.address));
+      this.htmlFadeIn('#ownerAddress', this.etherscanLink(ownerAddress));
+      this.htmlFadeIn('#proxyAddress', this.etherscanLink(proxyAddress));
+      this.htmlFadeIn('#walletAddress', this.etherscanLink(walletAddress));
     },
 
-    parseAddressLink: function(address) {
+    etherscanLink: function(address) {
       let baseUrl;
 
       switch (App.web3.version.network) {
@@ -176,7 +181,7 @@ App = {
   };
   
   $(function () {
-    $(window).load(function () {
+    $(window).ready(function () {
       App.init();
     });
   });
