@@ -8,7 +8,7 @@
   },
   "scripts": {
     "benchmark": "truffle compile && run-with-testrpc 'truffle exec test/benchmarks/benchmark_gas_usage.js'",
-    "compile": "truffle compile",
+    "compile": "truffle compile",    
     "coverage": "solidity-coverage",
     "deploy:rinkeby": "truffle migrate --network rinkeby",
     "lint": "solium -d contracts/",
@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "bootstrap": "^3.3.7",
-    "jquery": "^1.12.4",
+    "jquery": "^2.2.4",
     "jquery.animate-number": "^0.0.14",
     "moment": "^2.20.1",
     "sprintf-js": "^1.1.1",
