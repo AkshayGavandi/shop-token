@@ -35,6 +35,7 @@ contract DutchAuction is PriceDecay150 {
     event AuctionEnded(uint256 priceFinal, uint256 _endTime, Endings ending);    
     event BidAccepted(address indexed _address, uint256 price, uint256 transfer, bool isBitcoin);
     event BidPartiallyRefunded(address indexed _address, uint256 transfer);
+    event FundsTransfered(address indexed _bidder, address indexed _wallet, uint256 amount);
     event TokensClaimed(address indexed _address, uint256 amount);
     event TokensDistributed();
 
@@ -49,6 +50,9 @@ contract DutchAuction is PriceDecay150 {
 
     // Auction owner address
     address public owner_address;
+
+    // Wallet address
+    address public wallet_address;
 
     // Bitcoin bidder proxy address
     address public proxy_address;
@@ -109,13 +113,15 @@ contract DutchAuction is PriceDecay150 {
         uint256 _priceStart, 
         uint256 _pricePrecision,
         uint256 _minimumBid, 
-        uint256 _claimPeriod, 
+        uint256 _claimPeriod,
+        address _walletAddress,
         address _proxyAddress
     ) 
         public 
     {
         // Set auction owner address
         owner_address = msg.sender;
+        wallet_address = _walletAddress;
         proxy_address = _proxyAddress;
 
         // Set auction parameters
@@ -198,8 +204,8 @@ contract DutchAuction is PriceDecay150 {
 
                 // Refund remaining value
                 uint256 returnedWei = bidValue - acceptedWei;
-                BidPartiallyRefunded(sender, returnedWei);
                 sender.transfer(returnedWei);
+                BidPartiallyRefunded(sender, returnedWei);                
             }
 
             // End auction
@@ -245,7 +251,8 @@ contract DutchAuction is PriceDecay150 {
 
         // Send bid amount to owner
         if (!isBitcoin) {
-            owner_address.transfer(value);
+            wallet_address.transfer(value);
+            FundsTransfered(sender, wallet_address, value);
         }
     }
 

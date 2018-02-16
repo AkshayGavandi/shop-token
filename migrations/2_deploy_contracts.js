@@ -8,9 +8,9 @@ module.exports = function (deployer, network, accounts) {
   const multiplier = new BigNumber(10).pow(18).toString();
   const initialSupply = new BigNumber(10).pow(9).multipliedBy(multiplier).toString();
 
-  // Prepare 100K tokens for sale + 5% oversubscription bonus
-  const offering = new BigNumber(100000).multipliedBy(multiplier);
-  const bonus = new BigNumber(5000).multipliedBy(multiplier);
+  // Prepare 100M tokens for sale + 5% oversubscription bonus
+  const offering = new BigNumber(10).pow(8).multipliedBy(multiplier);
+  const bonus = offering.multipliedBy(5).dividedBy(100);
   const auctionSupply = offering.plus(bonus).toString();
 
   // USDETH Rate - 0.0011, 16 Feb 2018
@@ -23,11 +23,24 @@ module.exports = function (deployer, network, accounts) {
   // Tokens can be claimed 7 days after auction ends
   const claimPeriod = 86400 * 7;
 
-  // Deployer can also place Bitcoin bids
-  const proxyAddress = accounts[0];
+  // Wallet and proxy addresses  
+  let walletAddress;
+  let proxyAddress;
 
-  // Deploy
-  deployer.deploy(DutchAuction, priceStart, pricePrecision, minimumBid, claimPeriod, proxyAddress).then(function () {
-    return deployer.deploy(ShopToken, DutchAuction.address, initialSupply, auctionSupply);
+  if (network == "development" || network == "coverage") {
+    walletAddress = accounts[1];
+    proxyAddress = accounts[2];
+  } else if (network == "rinkeby") {
+    walletAddress = "0xe7f341e27fc39ee1a1f7093c83ce262696bb4b4d";
+    proxyAddress = "0x8cf0f38f6d6b8c30b9aa3cd71d54b0b94638f725";
+  }
+
+  // Deploy contracts and start auction
+  deployer.deploy(DutchAuction, priceStart, pricePrecision, minimumBid, claimPeriod, walletAddress, proxyAddress).then(function () {
+    deployer.deploy(ShopToken, DutchAuction.address, initialSupply, auctionSupply).then(function() {
+      DutchAuction.deployed().then(function(instance) {
+        instance.startAuction(ShopToken.address, offering.toString(), bonus.toString());
+      });
+    });
   });
 };

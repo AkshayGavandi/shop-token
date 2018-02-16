@@ -10,8 +10,10 @@ const helpers = require('../lib/helpers.js');
 
 module.exports = async function (callback) {
     let totalGas = 0;
+
     const coinbase = web3.eth.accounts[0];
-    const proxyAddress = web3.eth.accounts[1];
+    const walletAddress = web3.eth.accounts[1];
+    const proxyAddress = web3.eth.accounts[2];
 
     // Average and Fastest Gas Prices, 15 Feb 2018
     // From https://ethgasstation.info
@@ -54,15 +56,31 @@ module.exports = async function (callback) {
     }
 
     // Measure DutchAuction() constructor
-    const auctionContract = await DutchAuction.new(defaults.priceStart, defaults.pricePrecision, defaults.minimumBid, 0, proxyAddress);
+    const claimPeriod = 0;
+    const auctionContract = await DutchAuction.new(
+        defaults.priceStart, 
+        defaults.pricePrecision, 
+        defaults.minimumBid, 
+        claimPeriod, 
+        walletAddress,
+        proxyAddress
+    );
     accumulateStats(auctionContract.transactionHash, "DutchAuction()", true);
 
     // Measure ShopToken() constructor
-    const tokenContract = await ShopToken.new(auctionContract.address, defaults.initialSupply, defaults.auctionSupply);
+    const tokenContract = await ShopToken.new(
+        auctionContract.address, 
+        defaults.initialSupply, 
+        defaults.auctionSupply
+    );
     accumulateStats(tokenContract.transactionHash, "ShopToken()", true);
 
     // Measure startAuction()
-    const startAuction = await auctionContract.startAuction(tokenContract.address, defaults.offering, defaults.bonus);
+    const startAuction = await auctionContract.startAuction(
+        tokenContract.address, 
+        defaults.offering, 
+        defaults.bonus
+    );
     accumulateStats(startAuction.tx, "startAuction()", true);
 
     // Measure total deployment costs
@@ -73,7 +91,11 @@ module.exports = async function (callback) {
     accumulateStats(placeBid.tx, "placeBid()", false);
 
     // Measure placeBitcoinBid()
-    const placeBitcoinBid = await auctionContract.placeBitcoinBid(proxyAddress, 1000, { from: proxyAddress });
+    const placeBitcoinBid = await auctionContract.placeBitcoinBid(
+        proxyAddress, 
+        1000, 
+        { from: proxyAddress }
+    );
     accumulateStats(placeBitcoinBid.tx, "placeBitcoinBid()", false);
 
     // Measure endAuction()

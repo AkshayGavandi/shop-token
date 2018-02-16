@@ -11,8 +11,10 @@ var ShopToken = artifacts.require("./ShopToken.sol");
 contract('InputValidation', function (accounts) {
     let auctionContract;
     let tokenContract;
+
     const coinbase = accounts[0];
-    const proxyAddress = accounts[1];
+    const walletAddress = accounts[1];    
+    const proxyAddress = accounts[2];
   
     // Reset contract state before each test case
     beforeEach(async function () {
@@ -20,7 +22,8 @@ contract('InputValidation', function (accounts) {
         defaults.priceStart, 
         defaults.pricePrecision, 
         defaults.minimumBid, 
-        defaults.claimPeriod, 
+        defaults.claimPeriod,
+        walletAddress,
         proxyAddress
       );
       

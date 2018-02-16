@@ -8,8 +8,10 @@
   },
   "scripts": {
     "build": "truffle compile",
-    "benchmark": "run-with-testrpc 'truffle exec test/benchmarks/benchmark_gas_usage.js'",
+    "benchmark": "truffle compile && run-with-testrpc 'truffle exec test/benchmarks/benchmark_gas_usage.js'",
+    "clean": "rm -rf build/ coverage/ coverage.json",
     "coverage": "solidity-coverage",
+    "deploy:rinkeby": "truffle migrate --network rinkeby",
     "lint": "solium -d contracts/",
     "migrate": "run-with-testrpc 'truffle migrate'",
     "test": "run-with-testrpc 'truffle test'",

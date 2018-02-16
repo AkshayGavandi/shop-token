@@ -10,7 +10,9 @@ var ShopToken = artifacts.require("./ShopToken.sol");
 contract('StageTransition', function (accounts) {
   let auctionContract;
   let tokenContract;
-  const proxyAddress = accounts[0];
+
+  const walletAddress = accounts[1];
+  const proxyAddress = accounts[2];
 
   // Reset contract state before each test case
   beforeEach(async function () {
@@ -19,6 +21,7 @@ contract('StageTransition', function (accounts) {
       defaults.pricePrecision, 
       defaults.minimumBid, 
       defaults.claimPeriod, 
+      walletAddress,
       proxyAddress
     );
     

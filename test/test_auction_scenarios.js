@@ -18,16 +18,21 @@ contract('AuctionScenarios', function (accounts) {
   const startPrice = new BigNumber(20);
   const minimumBid = 1;
 
-  // 0 - owner, [1; 3] - bidders, 4 - proxy
+  // 0 - owner, (1, 2, 3) - bidders, 4 - proxy
   const proxyAddress = accounts[4];
+  let walletIndex = 4;
+  const initialBalance = web3.eth.getBalance(accounts[walletIndex]).toNumber();
 
   // Reset contract state before each test case
   beforeEach(async function () {
+    walletIndex++;
+
     auctionContract = await DutchAuction.new(
       startPrice.toString(), 
       defaults.pricePrecision, 
       minimumBid,
-      defaults.claimPeriod, 
+      defaults.claimPeriod,
+      accounts[walletIndex],
       proxyAddress
     );
 
@@ -68,12 +73,12 @@ contract('AuctionScenarios', function (accounts) {
     // Ensure proper amount is refunded
     const bidAmount = new BigNumber(amount);
     const refunded = bidAmount.minus(accepted).toNumber();
-    assert.equal(result.logs[1].event, events.BID_PARTIALLY_REFUNDED, "Should fire `BidPartiallyRefunded` event");
-    assert.equal(result.logs[1].args.transfer.toNumber(), refunded, "Refund transfer value should be correct");    
+    assert.equal(result.logs[2].event, events.BID_PARTIALLY_REFUNDED, "Should fire `BidPartiallyRefunded` event");
+    assert.equal(result.logs[2].args.transfer.toNumber(), refunded, "Refund transfer value should be correct");    
 
     // Ensure auction is ended with correct reasons
-    assert.equal(result.logs[2].event, events.AUCTION_ENDED, "Should fire `AuctionEnded` event");
-    assert.equal(result.logs[2].args.ending, ending, "Should end with correct ending reason");
+    assert.equal(result.logs[3].event, events.AUCTION_ENDED, "Should fire `AuctionEnded` event");
+    assert.equal(result.logs[3].args.ending, ending, "Should end with correct ending reason");
   }
 
   async function assertBidResult(id, amount) {
@@ -107,7 +112,7 @@ contract('AuctionScenarios', function (accounts) {
   it("Should verify Auction Scenario I", async function () {
     // Bidder simulation parameters
     const bids = { first: 40000, second: 30000, third: 80000 };
-    const transfers = { first: 40000, second: 30000, third: 87500 };
+    const transfers = { first: 40000, second: 30000, third: 80000 };
     const received = { after1: 40000, after2: 70000, after3: 150000 };
     const results = { bidderA: 2666, bidderB: 2000, bidderC: 5333 };
 
@@ -133,6 +138,9 @@ contract('AuctionScenarios', function (accounts) {
     await assertBidResult(1, results.bidderA);
     await assertBidResult(2, results.bidderB);
     await assertBidResult(3, results.bidderC);
+
+    // Verify wallet balance
+    assert.equal(web3.eth.getBalance(accounts[walletIndex]).toNumber(), initialBalance + received.after3);
   });
 
   /*
@@ -157,7 +165,7 @@ contract('AuctionScenarios', function (accounts) {
   it("Should verify Auction Scenario II", async function () {
     // Bidder simulation parameters
     const bids = { first: 40000, second: 30000, third: 85000 };
-    const transfers = { first: 40000, second: 30000, third: 87500 };
+    const transfers = { first: 40000, second: 30000, third: 85000 };
     const received = { after1: 40000, after2: 70000, after3: 155000 };
     const results = { bidderA: 2666, bidderB: 2000, bidderC: 5666 };
 
@@ -183,6 +191,9 @@ contract('AuctionScenarios', function (accounts) {
     await assertBidResult(1, results.bidderA);
     await assertBidResult(2, results.bidderB);
     await assertBidResult(3, results.bidderC);
+
+    // Verify wallet balance
+    assert.equal(web3.eth.getBalance(accounts[walletIndex]).toNumber(), initialBalance + received.after3);    
   });
 
   /*
@@ -233,6 +244,9 @@ contract('AuctionScenarios', function (accounts) {
     await assertBidResult(1, results.bidderA);
     await assertBidResult(2, results.bidderB);
     await assertBidResult(3, results.bidderC);
+
+    // Verify wallet balance
+    assert.equal(web3.eth.getBalance(accounts[walletIndex]).toNumber(), initialBalance + received.after3);    
   });
 
   /*
@@ -284,6 +298,9 @@ contract('AuctionScenarios', function (accounts) {
     await assertBidResult(1, results.bidderA);
     await assertBidResult(2, results.bidderB);
     await assertBidResult(3, results.bidderC);
+
+    // Verify wallet balance
+    assert.equal(web3.eth.getBalance(accounts[walletIndex]).toNumber(), initialBalance + received.after3);    
   });
 
   /*
@@ -294,7 +311,7 @@ contract('AuctionScenarios', function (accounts) {
   it("Should verify Auction Scenario BTC", async function () {
     // Bidder simulation parameters
     const bids = { first: 40000, second: 30000, third: 80000 };
-    const transfers = { first: 40000, second: 30000, third: 87500 };
+    const transfers = { first: 40000, second: 30000, third: 80000 };
     const received = { after1: 40000, after2: 70000, after3: 150000 };
     const results = { bidderA: 2666, bidderB: 2000, bidderC: 5333 };
 
@@ -320,5 +337,9 @@ contract('AuctionScenarios', function (accounts) {
     await assertBidResult(1, results.bidderA);
     await assertBidResult(2, results.bidderB);
     await assertBidResult(3, results.bidderC);
+
+    // Verify wallet balance
+    // We don't transfer funds if received from Bitcoin
+    assert.equal(web3.eth.getBalance(accounts[walletIndex]).toNumber(), initialBalance);    
   });  
 });

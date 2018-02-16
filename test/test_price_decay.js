@@ -14,7 +14,9 @@ var ShopToken = artifacts.require("./ShopToken.sol");
 contract('PriceDecay', function (accounts) {
   let auctionContract;
   let tokenContract;
-  const proxyAddress = accounts[0];  
+
+  const walletAddress = accounts[1]; 
+  const proxyAddress = accounts[2];
 
   // Assuming 1 ETH = 1000 USD
   const conversionRate = 0.001;
@@ -30,6 +32,7 @@ contract('PriceDecay', function (accounts) {
       defaults.pricePrecision, 
       defaults.minimumBid, 
       defaults.claimPeriod, 
+      walletAddress,
       proxyAddress
     );
 
