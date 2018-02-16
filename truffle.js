@@ -22,6 +22,12 @@ module.exports = {
       port: 8545,
       network_id: "4",
       from: "0x9ef45f76996492c1c2f214ae28e7145354186f10",
+    },
+    ropsten: {
+      host: "localhost",
+      port: 8545,
+      network_id: "3",
+      from: "0x3ad0a98abdb574a4552a2976a07dff922acefe2e",      
     }
   }
 };

@@ -13,6 +13,12 @@ trim_trailing_whitespace = true
 [Makefile]
 indent_style = tab
 
+# Google HTML/CSS Style Guide
+# https://google.github.io/styleguide/htmlcssguide.html
+[*.{html,css}]
+indent_style = space
+indent_size = 2
+
 # Airbnb JavaScript Style Guide
 # https://github.com/airbnb/javascript#whitespace
 [*.{js,json}]

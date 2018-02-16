@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Meta -->
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SHOP Token Sale Status Page</title>
+
+  <!-- Styles -->
+  <link href="bootstrap.min.css" rel="stylesheet">
+  <link href="css/jumbotron-narrow.css" rel="stylesheet">
+
+  <!-- Favicon -->
+  <link rel="icon" href="images/favicon.png" sizes="32x32" />
+  <link rel="icon" href="images/favicon.png" sizes="192x192" />
+  <link rel="apple-touch-icon-precomposed" href="images/favicon.png" />
+  <meta name="msapplication-TileImage" content="images/favicon.png" />  
+</head>
+
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header clearfix">
+      <nav>
+        <ul class="nav nav-pills pull-right">
+          <li role="presentation" class="active"><a href="">Status</a></li>
+          <li role="presentation"><a href="https://shoppers.shop">Protocol</a></li>
+          <li role="presentation"><a href="#">Members</a></li>
+        </ul>
+      </nav>
+      <h3 class="text-muted">SHOP Token Sale</h3>
+    </div>
+
+    <!-- Jumbotron -->
+    <div class="jumbotron">
+      <h1><span id="currentNetwork">Network</span></h1>
+      <p class="lead">Current price: <strong id="currentPrice">0</strong> wei per token unit</p>
+      <p class="lead">Current interval: <strong id="currentInterval">0</strong> of <strong id="totalIntervals">0</strong></p>
+    </div>
+
+    <!-- Common -->
+    <div class="row marketing">
+      <div class="col-lg-6">
+        <h4>ℹ️ Common</h4>
+        <table class="table table-striped">
+          <tbody>
+            <tr>
+              <th>Stage</th>
+              <td><span id="currentStage">Unknown</span></td>
+            </tr>
+            <tr>
+              <th>For Sale</th>
+              <td><span id="initialOffering">0</span> tokens</td>
+            </tr>
+            <tr>
+              <th>Bonus</th>
+              <td><span id="lastBonus">0</span> tokens</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Time -->
+      <div class="col-lg-6">
+        <h4>🕒 Time</h4>
+        <table class="table table-striped">
+          <tbody>
+            <tr>
+              <th>Started</th>
+              <td><span id="startTime">Unknown</span></td>
+            </tr>
+            <tr>
+              <th>Ended</th>
+              <td><span id="endTime">Unknown</span></td>
+            </tr> 
+            <tr>
+              <th>Claim Period</th>
+              <td><span id="claimPeriod">Unknown</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Financial -->
+      <div class="col-lg-5">
+        <h4>💰 Financial</h4>
+        <table class="table table-striped">
+          <tbody>
+            <tr>
+              <th>Minimal Bid</th>
+              <td><span id="minimumBid">0</span> kwei</td>
+            </tr>
+            <tr>
+              <th>Last Bid</th>
+              <td><span id="lastBid">0</span> <abbr title="wei per token unit">WPTU</abbr></td>
+            </tr>            
+            <tr>
+              <th>Received</th>
+              <td><span id="receivedFunds">0</span> ETH</td>
+            </tr>   
+            <tr>
+              <th>Claimed</th>
+              <td><span id="claimedFunds">0</span> ETH</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Addresses -->
+      <div class="col-lg-7">
+        <h4>📮 Addresses</h4>
+        <table class="table table-striped">
+          <tbody>
+            <tr>
+              <th>Auction</th>
+              <td><span id="contractAddress">Unknown</span></td>
+            </tr>            
+            <tr>
+              <th>Owner</th>
+              <td><span id="ownerAddress">Unknown</span></td>
+            </tr>
+            <tr>
+              <th>Proxy</th>
+              <td><span id="proxyAddress">Unknown</span></td>
+            </tr>   
+            <tr>
+              <th>Wallet</th>
+              <td><span id="walletAddress">Unknown</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>        
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>&copy; 2018 SHOP</p>
+    </footer>
+  </div>
+
+  <!-- Scripts -->
+  <script src="sprintf.min.js"></script>
+  <script src="moment.min.js"></script>
+  <script src="jquery.min.js"></script>
+  <script src="jquery.animateNumber.min.js"></script>
+  <script src="bootstrap.min.js"></script>
+  <script src="web3.min.js"></script>
+  <script src="truffle-contract.min.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -27,12 +27,16 @@ module.exports = function (deployer, network, accounts) {
   let walletAddress;
   let proxyAddress;
 
-  if (network == "development" || network == "coverage") {
-    walletAddress = accounts[1];
-    proxyAddress = accounts[2];
-  } else if (network == "rinkeby") {
-    walletAddress = "0xe7f341e27fc39ee1a1f7093c83ce262696bb4b4d";
-    proxyAddress = "0x8cf0f38f6d6b8c30b9aa3cd71d54b0b94638f725";
+  switch (network) {
+    case "rinkeby":
+      walletAddress = "0xe7f341e27fc39ee1a1f7093c83ce262696bb4b4d";
+      proxyAddress = "0x8cf0f38f6d6b8c30b9aa3cd71d54b0b94638f725";
+    case "ropsten":
+      walletAddress = "0x169d5299add67127ab42a70cf3d1c9a5563dc2d4";
+      proxyAddress = "0x9b89c469c042268ca5d3ea1082e6e8a0d8b04427";
+    default:
+      walletAddress = accounts[0];
+      proxyAddress = accounts[0];    
   }
 
   // Deploy contracts and start auction

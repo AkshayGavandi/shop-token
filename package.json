@@ -7,18 +7,25 @@
     "url": "https://github.com/ShoppersShop/shop-token"
   },
   "scripts": {
-    "build": "truffle compile",
     "benchmark": "truffle compile && run-with-testrpc 'truffle exec test/benchmarks/benchmark_gas_usage.js'",
-    "clean": "rm -rf build/ coverage/ coverage.json",
+    "compile": "truffle compile",
     "coverage": "solidity-coverage",
     "deploy:rinkeby": "truffle migrate --network rinkeby",
     "lint": "solium -d contracts/",
     "migrate": "run-with-testrpc 'truffle migrate'",
+    "start": "lite-server",    
     "test": "run-with-testrpc 'truffle test'",
     "testrpc": "ganache-cli --deterministic --unlock 0"
   },
   "dependencies": {
+    "bootstrap": "^3.3.7",
+    "jquery": "^1.12.4",
+    "jquery.animate-number": "^0.0.14",
+    "moment": "^2.20.1",
+    "sprintf-js": "^1.1.1",
     "truffle": "^4.0.4",
+    "truffle-contract": "^3.0.1",
+    "web3": "^0.19.0",
     "zeppelin-solidity": "^1.5.0"
   },
   "devDependencies": {
@@ -31,9 +38,9 @@
     "bignumber.js": "^6.0.0",
     "cli-table": "^0.3.1",
     "ganache-cli": "v6.1.0-beta.0",
+    "lite-server": "^2.3.0",
     "run-with-testrpc": "^0.3.0",
     "solidity-coverage": "^0.4.3",
-    "solium": "^1.1.2",
-    "sprintf-js": "^1.1.1"    
+    "solium": "^1.1.2"
   }
 }

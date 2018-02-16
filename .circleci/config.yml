@@ -11,7 +11,7 @@ jobs:
           command: yarn install
       - run: 
           name: Compile Contracts
-          command: yarn run build
+          command: yarn run compile
       - run: 
           name: Lint Contracts
           command: yarn run lint
