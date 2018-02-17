@@ -6,14 +6,17 @@
     "type": "git",
     "url": "https://github.com/ShoppersShop/shop-token"
   },
+  "now": {
+    "alias": "shop-token"
+  },
   "scripts": {
     "benchmark": "truffle compile && run-with-testrpc 'truffle exec test/benchmarks/benchmark_gas_usage.js'",
-    "compile": "truffle compile",    
+    "compile": "truffle compile",
     "coverage": "solidity-coverage",
     "deploy:rinkeby": "truffle migrate --network rinkeby",
     "lint": "solium -d contracts/",
     "migrate": "run-with-testrpc 'truffle migrate'",
-    "start": "lite-server",    
+    "start": "lite-server",
     "test": "run-with-testrpc 'truffle test'",
     "testrpc": "ganache-cli --deterministic --unlock 0"
   },

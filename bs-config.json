@@ -2,13 +2,13 @@
     "server": [
       "./app",
       "./build/contracts",
-      "./node_modules/sprintf-js/dist",
-      "./node_modules/moment/min",
-      "./node_modules/jquery/dist",
-      "./node_modules/jquery.animate-number",
       "./node_modules/bootstrap/dist/css",
       "./node_modules/bootstrap/dist/js",
-      "./node_modules/web3/dist",
-      "./node_modules/truffle-contract/dist/"
+      "./node_modules/jquery.animate-number",
+      "./node_modules/jquery/dist",
+      "./node_modules/moment/min",
+      "./node_modules/sprintf-js/dist",
+      "./node_modules/truffle-contract/dist/",
+      "./node_modules/web3/dist"
     ]
   }

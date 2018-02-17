@@ -34,7 +34,7 @@
 
     <!-- Jumbotron -->
     <div class="jumbotron">
-      <h1><span id="currentNetwork">Network</span></h1>
+      <h1><span id="currentNetwork">Detecting Network</span></h1>
       <p class="lead">Current price: <strong id="currentPrice">0</strong> wei per token unit</p>
       <p class="lead">Current interval: <strong id="currentInterval">0</strong> of <strong id="totalIntervals">0</strong></p>
     </div>
@@ -83,7 +83,7 @@
       </div>
       
       <!-- Financial -->
-      <div class="col-lg-5">
+      <div class="col-lg-6">
         <h4>💰 Financial</h4>
         <table class="table table-striped">
           <tbody>
@@ -108,12 +108,12 @@
       </div>
 
       <!-- Addresses -->
-      <div class="col-lg-7">
+      <div class="col-lg-6">
         <h4>📮 Addresses</h4>
-        <table class="table table-striped">
+        <table id="addresses" class="table table-striped">
           <tbody>
             <tr>
-              <th>Auction</th>
+              <th>Contract</th>
               <td><span id="contractAddress">Unknown</span></td>
             </tr>            
             <tr>

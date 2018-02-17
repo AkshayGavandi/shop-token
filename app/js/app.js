@@ -1,4 +1,5 @@
 App = {
+    network: null,
     web3: null,
     web3Provider: null,
     contracts: {},
@@ -26,13 +27,12 @@ App = {
       }
   
       App.web3 = new Web3(App.web3Provider);
+      console.log("web3 version:", App.web3.version.api);
       return App.initContract();
     },
   
     // Init contract
     initContract: function () {
-      console.log("Network:", this.parseNetwork(this.web3.version.network))
-  
       $.getJSON('DutchAuction.json', function (data) {
         console.log("Loaded `DutchAuction` artifact");
         App.contracts.DutchAuction = TruffleContract(data);
@@ -41,12 +41,24 @@ App = {
       });
     },
 
+    initNetwork: function() {
+      App.web3.version.getNetwork(function (err, networkId) {
+        if (err) {
+          console.log("Error detecting network:", err);
+        } else {
+          console.log("Network ID:", networkId);
+          App.network = networkId;
+        }
+      });      
+    },
+
     htmlFadeIn: function(selector, value) {
       $(selector).hide().html(value).fadeIn('slow');
     },
 
     // Retrieve contract data and render
     showStatus: async function (token, account) {
+      await this.initNetwork();
       const auctionContract = await App.contracts.DutchAuction.deployed();
       
       this.showJumbotron(auctionContract);
@@ -57,12 +69,12 @@ App = {
     },    
 
     showJumbotron: async function(auctionContract) {
-      $('#currentNetwork').html(this.parseNetwork(this.web3.version.network))
       const startPrice = await auctionContract.price_start.call();
       const currentPrice = await auctionContract.getPrice();
       const currentInterval = await auctionContract.getIntervals();
       const totalIntervals = await auctionContract.intervals.call(); 
 
+      this.htmlFadeIn('#currentNetwork', this.parseNetwork(this.network));
       $('#currentPrice').prop('number', startPrice.toString()).animateNumber({ number: currentPrice.toString() }, 2500);
       this.htmlFadeIn('#currentInterval', currentInterval.toString());
       this.htmlFadeIn('#totalIntervals', totalIntervals.toString());
@@ -73,12 +85,15 @@ App = {
       const initialOffering = await auctionContract.initial_offering.call();
       const lastBonus = await auctionContract.last_bonus.call();
       
-      const totalTokens = new Intl.NumberFormat('en-US').format(web3.fromWei(initialOffering.toNumber(), 'ether'));
-      const bonusTokens = new Intl.NumberFormat('en-US').format(web3.fromWei(lastBonus.toNumber(), 'ether'));
+      const totalTokens = App.web3.fromWei(initialOffering.toNumber(), 'ether');
+      const bonusTokens = App.web3.fromWei(lastBonus.toNumber(), 'ether');
+
+      const totalTokensFormatted = new Intl.NumberFormat('en-US').format(totalTokens);
+      const bonusTokensFormatted = new Intl.NumberFormat('en-US').format(bonusTokens);
     
       this.htmlFadeIn('#currentStage', this.stageNames[currentStage]);
-      this.htmlFadeIn('#initialOffering', totalTokens);
-      this.htmlFadeIn('#lastBonus', bonusTokens);
+      this.htmlFadeIn('#initialOffering', totalTokensFormatted);
+      this.htmlFadeIn('#lastBonus', bonusTokensFormatted);
     },
 
     showTime: async function(auctionContract) {
@@ -97,9 +112,9 @@ App = {
       const receivedWei = await auctionContract.received_wei.call();
       const claimedWei = await auctionContract.claimed_wei.call();
       
-      const minimalBid = web3.fromWei(minimumBid.toNumber(), 'kwei');
-      const receivedFunds = web3.fromWei(receivedWei.toNumber(), 'ether');
-      const claimedFunds = web3.fromWei(claimedWei.toNumber(), 'ether');
+      const minimalBid = App.web3.fromWei(minimumBid.toNumber(), 'kwei');
+      const receivedFunds = App.web3.fromWei(receivedWei.toNumber(), 'ether');
+      const claimedFunds = App.web3.fromWei(claimedWei.toNumber(), 'ether');
       
       this.htmlFadeIn('#minimumBid', minimalBid);
       this.htmlFadeIn('#lastBid', lastBid.toString());
@@ -121,7 +136,7 @@ App = {
     etherscanLink: function(address) {
       let baseUrl;
 
-      switch (App.web3.version.network) {
+      switch (App.network) {
         case "1":
           baseUrl = "https://etherscan.io/address";
           break;

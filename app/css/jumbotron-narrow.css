@@ -78,3 +78,11 @@ body {
     border-bottom: 0;
   }
 }
+
+/* Truncate long addresses */
+#addresses td {
+  overflow: hidden;
+  white-space: nowrap;  
+  text-overflow: ellipsis;
+  max-width: 225px;
+}
