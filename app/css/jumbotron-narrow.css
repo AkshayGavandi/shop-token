@@ -86,3 +86,7 @@ body {
   text-overflow: ellipsis;
   max-width: 225px;
 }
+
+.jumbotron p.lead {
+  display: none;
+}

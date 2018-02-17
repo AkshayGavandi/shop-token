@@ -34,7 +34,7 @@ App = {
     // Init contract
     initContract: function () {
       $.getJSON('DutchAuction.json', function (data) {
-        console.log("Loaded `DutchAuction` artifact");
+        console.log("Loading `DutchAuction` artifact");
         App.contracts.DutchAuction = TruffleContract(data);
         App.contracts.DutchAuction.setProvider(App.web3Provider);
         return App.showStatus();
@@ -44,9 +44,10 @@ App = {
     initNetwork: function() {
       App.web3.version.getNetwork(function (err, networkId) {
         if (err) {
-          console.log("Error detecting network:", err);
+          console.error("Error detecting network:", err);
         } else {
           console.log("Network ID:", networkId);
+          App.htmlFadeIn('#currentNetwork', App.parseNetwork(networkId));
           App.network = networkId;
         }
       });      
@@ -58,14 +59,22 @@ App = {
 
     // Retrieve contract data and render
     showStatus: async function (token, account) {
-      await this.initNetwork();
-      const auctionContract = await App.contracts.DutchAuction.deployed();
+      await App.initNetwork();
       
-      this.showJumbotron(auctionContract);
-      this.showCommon(auctionContract);
-      this.showTime(auctionContract);
-      this.showFinancial(auctionContract);
-      this.showAddresses(auctionContract);
+      App.contracts.DutchAuction.deployed()
+        .then(function(instance) {
+          $('.jumbotron p.status').fadeIn('slow');
+          App.showJumbotron(instance);
+          App.showCommon(instance);
+          App.showTime(instance);
+          App.showFinancial(instance);
+          App.showAddresses(instance);
+        })
+        .catch(function(error) {
+          $('.jumbotron p.status').hide();
+          $('.jumbotron p.error').fadeIn('slow');
+          console.error(error);
+        })
     },    
 
     showJumbotron: async function(auctionContract) {
@@ -74,10 +83,9 @@ App = {
       const currentInterval = await auctionContract.getIntervals();
       const totalIntervals = await auctionContract.intervals.call(); 
 
-      this.htmlFadeIn('#currentNetwork', this.parseNetwork(this.network));
       $('#currentPrice').prop('number', startPrice.toString()).animateNumber({ number: currentPrice.toString() }, 2500);
-      this.htmlFadeIn('#currentInterval', currentInterval.toString());
-      this.htmlFadeIn('#totalIntervals', totalIntervals.toString());
+      $('#currentInterval').html(currentInterval.toString());
+      $('#totalIntervals').html(totalIntervals.toString());
     },
 
     showCommon: async function(auctionContract) {
@@ -91,9 +99,9 @@ App = {
       const totalTokensFormatted = new Intl.NumberFormat('en-US').format(totalTokens);
       const bonusTokensFormatted = new Intl.NumberFormat('en-US').format(bonusTokens);
     
-      this.htmlFadeIn('#currentStage', this.stageNames[currentStage]);
-      this.htmlFadeIn('#initialOffering', totalTokensFormatted);
-      this.htmlFadeIn('#lastBonus', bonusTokensFormatted);
+      App.htmlFadeIn('#currentStage', App.stageNames[currentStage]);
+      App.htmlFadeIn('#initialOffering', totalTokensFormatted);
+      App.htmlFadeIn('#lastBonus', bonusTokensFormatted);
     },
 
     showTime: async function(auctionContract) {
@@ -101,9 +109,9 @@ App = {
       const endTime = await auctionContract.end_time.call();
       const claimPeriod = await auctionContract.claim_period.call();      
       
-      this.htmlFadeIn('#startTime', moment(startTime.toString(), "X").fromNow());
-      this.htmlFadeIn('#endTime', this.parseEndTime(endTime.toString()));
-      this.htmlFadeIn('#claimPeriod', moment.duration(claimPeriod.toNumber(), "seconds").humanize());    
+      App.htmlFadeIn('#startTime', moment(startTime.toString(), "X").fromNow());
+      App.htmlFadeIn('#endTime', App.parseEndTime(endTime.toString()));
+      App.htmlFadeIn('#claimPeriod', moment.duration(claimPeriod.toNumber(), "seconds").humanize());    
     },
 
     showFinancial: async function(auctionContract) {
@@ -116,10 +124,10 @@ App = {
       const receivedFunds = App.web3.fromWei(receivedWei.toNumber(), 'ether');
       const claimedFunds = App.web3.fromWei(claimedWei.toNumber(), 'ether');
       
-      this.htmlFadeIn('#minimumBid', minimalBid);
-      this.htmlFadeIn('#lastBid', lastBid.toString());
-      this.htmlFadeIn('#receivedFunds', receivedFunds);
-      this.htmlFadeIn('#claimedFunds', claimedFunds);
+      App.htmlFadeIn('#minimumBid', minimalBid);
+      App.htmlFadeIn('#lastBid', lastBid.toString());
+      App.htmlFadeIn('#receivedFunds', receivedFunds);
+      App.htmlFadeIn('#claimedFunds', claimedFunds);
     },
 
     showAddresses: async function(auctionContract) {
@@ -127,10 +135,10 @@ App = {
       const proxyAddress = await auctionContract.proxy_address.call();
       const walletAddress = await auctionContract.wallet_address.call();
 
-      this.htmlFadeIn('#contractAddress', this.etherscanLink(auctionContract.address));
-      this.htmlFadeIn('#ownerAddress', this.etherscanLink(ownerAddress));
-      this.htmlFadeIn('#proxyAddress', this.etherscanLink(proxyAddress));
-      this.htmlFadeIn('#walletAddress', this.etherscanLink(walletAddress));
+      App.htmlFadeIn('#contractAddress', App.etherscanLink(auctionContract.address));
+      App.htmlFadeIn('#ownerAddress', App.etherscanLink(ownerAddress));
+      App.htmlFadeIn('#proxyAddress', App.etherscanLink(proxyAddress));
+      App.htmlFadeIn('#walletAddress', App.etherscanLink(walletAddress));
     },
 
     etherscanLink: function(address) {
