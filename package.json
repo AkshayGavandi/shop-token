@@ -28,7 +28,7 @@
     "sprintf-js": "^1.1.1",
     "truffle": "^4.0.4",
     "truffle-contract": "^3.0.1",
-    "web3": "^0.19.0",
+    "web3": "^0.20.5",
     "zeppelin-solidity": "^1.5.0"
   },
   "devDependencies": {
