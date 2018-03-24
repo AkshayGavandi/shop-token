@@ -20,7 +20,7 @@ contract DutchAuction is PriceDecay150 {
         AuctionEnded,
         TokensDistributed
     }
-    
+
     // Auction Ending Reasons
     enum Endings {
         Manual,
@@ -32,7 +32,7 @@ contract DutchAuction is PriceDecay150 {
     // Auction Events
     event AuctionDeployed(uint256 indexed priceStart);
     event AuctionStarted(uint256 _startTime);
-    event AuctionEnded(uint256 priceFinal, uint256 _endTime, Endings ending);    
+    event AuctionEnded(uint256 priceFinal, uint256 _endTime, Endings ending);
     event BidAccepted(address indexed _address, uint256 price, uint256 transfer, bool isBitcoin);
     event BidPartiallyRefunded(address indexed _address, uint256 transfer);
     event FundsTransfered(address indexed _bidder, address indexed _wallet, uint256 amount);
@@ -110,14 +110,14 @@ contract DutchAuction is PriceDecay150 {
 
     // Constructor
     function DutchAuction(
-        uint256 _priceStart, 
+        uint256 _priceStart,
         uint256 _pricePrecision,
-        uint256 _minimumBid, 
+        uint256 _minimumBid,
         uint256 _claimPeriod,
         address _walletAddress,
         address _proxyAddress
-    ) 
-        public 
+    )
+        public
     {
         // Set auction owner address
         owner_address = msg.sender;
@@ -143,20 +143,20 @@ contract DutchAuction is PriceDecay150 {
 
     // Setup auction
     function startAuction(
-        address _tokenAddress, 
-        uint256 offering, 
+        address _tokenAddress,
+        uint256 offering,
         uint256 bonus
-    ) 
-        external 
-        isOwner 
-        atStage(Stages.AuctionDeployed) 
+    )
+        external
+        isOwner
+        atStage(Stages.AuctionDeployed)
     {
-        // Initialize external contract type      
+        // Initialize external contract type
         token = ShopToken(_tokenAddress);
         uint256 balance = token.balanceOf(address(this));
 
         // Verify & Initialize starting parameters
-        require(balance == offering + bonus);        
+        require(balance == offering + bonus);
         initial_offering = offering;
         last_bonus = bonus;
 
@@ -174,16 +174,16 @@ contract DutchAuction is PriceDecay150 {
     // Place Bitcoin bid
     function placeBitcoinBid(address beneficiary, uint256 bidValue) external isProxy atStage(Stages.AuctionStarted) {
         return placeBidGeneric(beneficiary, bidValue, true);
-    }    
+    }
 
     // Generic bid validation from ETH or BTC origin
     function placeBidGeneric(
-        address sender, 
-        uint256 bidValue, 
+        address sender,
+        uint256 bidValue,
         bool isBitcoin
-    ) 
-        private 
-        atStage(Stages.AuctionStarted) 
+    )
+        private
+        atStage(Stages.AuctionStarted)
     {
         // Input validation
         uint256 currentInterval = (block.timestamp - start_time) / interval_divider;
@@ -197,7 +197,7 @@ contract DutchAuction is PriceDecay150 {
             uint256 acceptedWei = currentPrice * last_bonus + acceptableWei;
             if (bidValue <= acceptedWei) {
                 // Place bid with all available value
-                placeBidInner(sender, currentPrice, bidValue, isBitcoin); 
+                placeBidInner(sender, currentPrice, bidValue, isBitcoin);
             } else {
                 // Place bid with available value
                 placeBidInner(sender, currentPrice, acceptedWei, isBitcoin);
@@ -205,7 +205,7 @@ contract DutchAuction is PriceDecay150 {
                 // Refund remaining value
                 uint256 returnedWei = bidValue - acceptedWei;
                 sender.transfer(returnedWei);
-                BidPartiallyRefunded(sender, returnedWei);                
+                BidPartiallyRefunded(sender, returnedWei);
             }
 
             // End auction
@@ -216,19 +216,19 @@ contract DutchAuction is PriceDecay150 {
             endImmediately(currentPrice, Endings.SoldOut);
         } else {
             // Place bid and update last price
-            placeBidInner(sender, currentPrice, bidValue, isBitcoin);          
-        }     
+            placeBidInner(sender, currentPrice, bidValue, isBitcoin);
+        }
     }
 
     // Inner function for placing bid
     function placeBidInner(
-        address sender, 
-        uint256 price, 
-        uint256 value, 
+        address sender,
+        uint256 price,
+        uint256 value,
         bool isBitcoin
-    ) 
-        private 
-        atStage(Stages.AuctionStarted) 
+    )
+        private
+        atStage(Stages.AuctionStarted)
     {
         // Create bid
         Bid memory bid = Bid({
@@ -240,7 +240,7 @@ contract DutchAuction is PriceDecay150 {
         });
 
         // Save and fire event
-        bids[sender] = bid;        
+        bids[sender] = bid;
         BidAccepted(sender, price, value, isBitcoin);
 
         // Update received wei and last price
@@ -261,13 +261,13 @@ contract DutchAuction is PriceDecay150 {
         end_time = block.timestamp;
         price_final = atPrice;
         current_stage = Stages.AuctionEnded;
-        AuctionEnded(price_final, end_time, ending);        
+        AuctionEnded(price_final, end_time, ending);
     }
 
     // Claim tokens
     function claimTokens() external atStage(Stages.AuctionEnded) {
         // Input validation
-        require(block.timestamp >= end_time + claim_period);        
+        require(block.timestamp >= end_time + claim_period);
         require(bids[msg.sender].placed && !bids[msg.sender].claimed);
 
         // Calculate tokens to receive
@@ -293,6 +293,13 @@ contract DutchAuction is PriceDecay150 {
         }
     }
 
+    // Transfer unused tokens back to the wallet
+    function transferBack() external isOwner atStage(Stages.TokensDistributed) {
+        uint256 balance = token.balanceOf(address(this));
+        require(balance > 0);
+        token.transfer(wallet_address, balance);
+    }
+
     // Returns intervals passed
     // Used for unit tests
     function getIntervals() public atStage(Stages.AuctionStarted) view returns (uint256) {
@@ -308,5 +315,5 @@ contract DutchAuction is PriceDecay150 {
         }
 
         return calcPrice(price_start, currentInterval);
-    }     
+    }
 }

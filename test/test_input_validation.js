@@ -13,23 +13,23 @@ contract('InputValidation', function (accounts) {
     let tokenContract;
 
     const coinbase = accounts[0];
-    const walletAddress = accounts[1];    
+    const walletAddress = accounts[1];
     const proxyAddress = accounts[2];
-  
+
     // Reset contract state before each test case
     beforeEach(async function () {
       auctionContract = await DutchAuction.new(
-        defaults.priceStart, 
-        defaults.pricePrecision, 
-        defaults.minimumBid, 
+        defaults.priceStart,
+        defaults.pricePrecision,
+        defaults.minimumBid,
         defaults.claimPeriod,
         walletAddress,
         proxyAddress
       );
-      
+
       tokenContract = await ShopToken.new(
-        auctionContract.address, 
-        defaults.initialSupply, 
+        auctionContract.address,
+        defaults.initialSupply,
         defaults.auctionSupply
       );
     });
@@ -37,7 +37,7 @@ contract('InputValidation', function (accounts) {
     it("Should NOT allow stage transition by non-owner", async function () {
       // Throw on `AuctionDeployed` ⇒ `AuctionStarted`
       await expectThrow(auctionContract.startAuction(tokenContract.address, defaults.offering, defaults.bonus, { from: accounts[1] }));
-  
+
       // Throw on `AuctionStarted` ⇒ `AuctionEnded`
       await auctionContract.startAuction(tokenContract.address, defaults.offering, defaults.bonus);
       await expectThrow(auctionContract.endAuction({ from: accounts[1] }));
@@ -68,7 +68,7 @@ contract('InputValidation', function (accounts) {
       await auctionContract.sendTransaction({ value: 100000 });
       await expectThrow(auctionContract.placeBitcoinBid(proxyAddress, 100000, { from: coinbase }));
     });
-    
+
     it("Should NOT allow to claim tokens before delay period", async function () {
       await auctionContract.startAuction(tokenContract.address, defaults.offering, defaults.bonus);
       await auctionContract.sendTransaction({ value: 100000 });
@@ -81,7 +81,15 @@ contract('InputValidation', function (accounts) {
       await auctionContract.endAuction();
       await increaseTime(helpers.byDays(7));
       await expectThrow(auctionContract.claimTokens());
-    });     
+    });
+
+    it("Should NOT allow to transfer tokens back before distribution", async function () {
+      await auctionContract.startAuction(tokenContract.address, defaults.offering, defaults.bonus);
+      await expectThrow(auctionContract.transferBack());
+      await auctionContract.endAuction();
+      await increaseTime(helpers.byDays(7));
+      await expectThrow(auctionContract.transferBack());
+    });
 
     it("Should NOT allow to claim tokens twice", async function () {
       await auctionContract.startAuction(tokenContract.address, defaults.offering, defaults.bonus);
@@ -91,12 +99,12 @@ contract('InputValidation', function (accounts) {
       await auctionContract.claimTokens();
       await expectThrow(auctionContract.claimTokens());
     });
-    
+
     it("Should verify initial supply values", async function () {
       const auctionBalance = await tokenContract.balanceOf(auctionContract.address);
       const tokenBalance = await tokenContract.balanceOf(accounts[0]);
-  
+
       assert.equal(auctionBalance.toNumber(), defaults.auctionSupply, "Auction balance should be 10.5K");
       assert.equal(tokenBalance.toNumber(), defaults.tokenSupply, "Token balance should be 990M");
-    });    
+    });
 });
