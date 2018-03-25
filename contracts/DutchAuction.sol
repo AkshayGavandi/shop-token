@@ -90,6 +90,12 @@ contract DutchAuction is PriceDecay150 {
     // Price precision
     uint256 public price_precision;
 
+    // Whitelisting enabled
+    bool public whitelisting = false;
+
+    // Whitelist for Ethereum addresses
+    mapping (address => bool) public whitelist;
+
     // Stage modifier
     modifier atStage(Stages _stage) {
         require(current_stage == _stage);
@@ -171,6 +177,20 @@ contract DutchAuction is PriceDecay150 {
         endImmediately(price_final, Endings.Manual);
     }
 
+    // Add addresses to whitelist
+    function whitelistAdd(address[] input) external isProxy {
+        for (uint32 i = 0; i < input.length; i++) {
+            whitelist[input[i]] = true;
+        }
+    }
+
+    // Remove addresses from whitelist
+    function whitelistRemove(address[] input) external isProxy {
+        for (uint32 i = 0; i < input.length; i++) {
+            whitelist[input[i]] = false;
+        }
+    }
+
     // Place Bitcoin bid
     function placeBitcoinBid(address beneficiary, uint256 bidValue) external isProxy atStage(Stages.AuctionStarted) {
         return placeBidGeneric(beneficiary, bidValue, true);
@@ -185,6 +205,11 @@ contract DutchAuction is PriceDecay150 {
         private
         atStage(Stages.AuctionStarted)
     {
+        // Whitelisting check
+        if (whitelisting) {
+            require(whitelist[sender]);
+        }
+
         // Input validation
         uint256 currentInterval = (block.timestamp - start_time) / interval_divider;
         require(!bids[sender].placed && currentInterval < intervals && bidValue >= minimum_bid);
