@@ -148,15 +148,7 @@ contract DutchAuction is PriceDecay150 {
     }
 
     // Setup auction
-    function startAuction(
-        address _tokenAddress,
-        uint256 offering,
-        uint256 bonus
-    )
-        external
-        isOwner
-        atStage(Stages.AuctionDeployed)
-    {
+    function startAuction(address _tokenAddress, uint256 offering, uint256 bonus) external isOwner atStage(Stages.AuctionDeployed) {
         // Initialize external contract type
         token = ShopToken(_tokenAddress);
         uint256 balance = token.balanceOf(address(this));
@@ -197,6 +189,7 @@ contract DutchAuction is PriceDecay150 {
     }
 
     // Generic bid validation from ETH or BTC origin
+<<<<<<< HEAD
     function placeBidGeneric(
         address sender,
         uint256 bidValue,
@@ -205,6 +198,9 @@ contract DutchAuction is PriceDecay150 {
         private
         atStage(Stages.AuctionStarted)
     {
+=======
+    function placeBidGeneric(address sender, uint256 bidValue, bool isBitcoin) private atStage(Stages.AuctionStarted) {
+>>>>>>> 525c6b1cda0c9c4fb0a5eed08596b789ac2d1533
         // Whitelisting check
         if (whitelisting) {
             require(whitelist[sender]);
@@ -246,15 +242,7 @@ contract DutchAuction is PriceDecay150 {
     }
 
     // Inner function for placing bid
-    function placeBidInner(
-        address sender,
-        uint256 price,
-        uint256 value,
-        bool isBitcoin
-    )
-        private
-        atStage(Stages.AuctionStarted)
-    {
+    function placeBidInner(address sender, uint256 price, uint256 value, bool isBitcoin) private atStage(Stages.AuctionStarted) {
         // Create bid
         Bid memory bid = Bid({
             price: price,
