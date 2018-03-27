@@ -189,18 +189,7 @@ contract DutchAuction is PriceDecay150 {
     }
 
     // Generic bid validation from ETH or BTC origin
-<<<<<<< HEAD
-    function placeBidGeneric(
-        address sender,
-        uint256 bidValue,
-        bool isBitcoin
-    )
-        private
-        atStage(Stages.AuctionStarted)
-    {
-=======
     function placeBidGeneric(address sender, uint256 bidValue, bool isBitcoin) private atStage(Stages.AuctionStarted) {
->>>>>>> 525c6b1cda0c9c4fb0a5eed08596b789ac2d1533
         // Whitelisting check
         if (whitelisting) {
             require(whitelist[sender]);
