@@ -37,9 +37,8 @@ review, testing, and patches.
 
 #### You intend to make a new feature or change an existing one
 
-- Suggest your change in the [shop-token Gitter channel](
-  https://gitter.im/commercecoop/shop-token) to get
-  feedback and engage with the maintainers.
+- Suggest your change in [Discord](https://discord.gg/mbmqtsD)
+  to get feedback and engage with the maintainers.
   
 - In the meantime, start writing code!
 
@@ -48,7 +47,7 @@ review, testing, and patches.
 
 #### You have questions about the source code
 
-- Come find us on [Gitter](https://gitter.im/commercecoop)! We're friendly and
+- Come find us on [Discord](https://discord.gg/mbmqtsD)! We're friendly and
   love to help.
   
 Thanks for your interest in pitching in! See you in the code.
