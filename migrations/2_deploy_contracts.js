@@ -23,7 +23,7 @@ module.exports = function (deployer, network, accounts) {
   // Tokens can be claimed 7 days after auction ends
   const claimPeriod = 86400 * 7;
 
-  // Wallet and proxy addresses  
+  // Wallet and proxy addresses
   let walletAddress;
   let proxyAddress;
 
@@ -31,9 +31,10 @@ module.exports = function (deployer, network, accounts) {
     case "rinkeby":
       walletAddress = "0xe7f341e27fc39ee1a1f7093c83ce262696bb4b4d";
       proxyAddress = "0x8cf0f38f6d6b8c30b9aa3cd71d54b0b94638f725";
+      break;
     default:
       walletAddress = accounts[0];
-      proxyAddress = accounts[0];    
+      proxyAddress = accounts[0];
   }
 
   // Deploy contracts and start auction
