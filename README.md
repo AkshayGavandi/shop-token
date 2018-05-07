@@ -2,6 +2,8 @@
 
 [![CircleCI](https://circleci.com/gh/ShoppersShop/shop-token.svg?style=svg)](https://circleci.com/gh/ShoppersShop/shop-token) [![dependencies Status](https://david-dm.org/ShoppersShop/shop-token/status.svg)](https://david-dm.org/ShoppersShop/shop-token) [![devDependencies Status](https://david-dm.org/ShoppersShop/shop-token/dev-status.svg)](https://david-dm.org/ShoppersShop/shop-token?type=dev)
 
+**DEPRECATED** New version of smart contracts will be used for upcoming token release, source code can be found at [ShoppersShop/token-sale](https://github.com/ShoppersShop/token-sale). You can find more information in related [blog post](https://medium.com/@shoppers_shop/shop-token-release-model-enhancement-1a33e872864f).
+
 Smart contracts for SHOP token and sale in form of [Dutch auction](https://en.wikipedia.org/wiki/Dutch_auction).
 
 # Details
